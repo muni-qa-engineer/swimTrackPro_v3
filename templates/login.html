@@ -1,0 +1,596 @@
+{% extends 'base.html' %}
+
+{% block title %}Personal Swimming Coaches for Your Pool | SwimTrackPro{% endblock %}
+
+{% block header %}
+<header class="site-header">
+    <div class="container nav-container">
+        <a href="/" class="logo animate-fade-in">
+            <i class="fa-solid fa-water"></i> SwimTrackPro
+        </a>
+        
+        <nav class="nav-links animate-fade-in">
+            <a href="#features" class="nav-link">Our Concept</a>
+            <a href="#plans" class="nav-link">Coaching Plans</a>
+            {% if session.get('user_name') %}
+                <a href="/logout" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Logout</a>
+            {% else %}
+                <button type="button" class="btn btn-primary" onclick="openLoginModal()" style="padding: 0.4rem 1.25rem; font-size: 0.85rem; border-radius: var(--radius-sm);">Login / Register</button>
+            {% endif %}
+        </nav>
+        
+        <button class="mobile-toggle" onclick="openLoginModal()">
+            <i class="fa-solid fa-user"></i>
+        </button>
+    </div>
+</header>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    body {
+        background: var(--color-background);
+        color: var(--color-text);
+        overflow-x: hidden;
+    }
+    
+    /* Hero Section */
+    .hero-banner {
+        position: relative;
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(180deg, rgba(9, 9, 11, 0.4) 0%, rgba(9, 9, 11, 0.98) 100%), 
+                    url("{{ url_for('static', filename='images/myswimpro-butterfly-login.jpg') }}") center center / cover no-repeat;
+        padding: 4rem 1rem;
+    }
+    
+    .hero-content {
+        max-width: 720px;
+    }
+    
+    /* Features */
+    .features-section {
+        padding: 5rem 1rem;
+        background: rgba(24, 24, 27, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Comparison Table / Column Layout */
+    .plans-section {
+        padding: 5rem 1rem;
+    }
+    
+    .comparison-wrapper {
+        background: rgba(24, 24, 27, 0.5);
+        backdrop-filter: var(--backdrop-blur);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+    
+    .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .comparison-table th {
+        font-family: var(--font-display);
+        background: rgba(255, 255, 255, 0.02);
+        color: white;
+        font-weight: 700;
+        padding: 1.5rem;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .comparison-table td {
+        padding: 1.25rem;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: var(--color-text-secondary);
+        font-size: 0.95rem;
+    }
+    
+    .comparison-table tr:hover td {
+        background: rgba(255, 255, 255, 0.01);
+    }
+    
+    .comparison-table .feature-name {
+        text-align: left;
+        color: white;
+        font-weight: 600;
+        padding-left: 1.5rem;
+    }
+    
+    /* Modal Login Styling */
+    .modal-content {
+        background: rgba(24, 24, 27, 0.95) !important;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-md);
+        color: white;
+    }
+    
+    .login-container {
+        padding: 1.5rem;
+    }
+    
+    .role-toggle {
+        display: flex;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 0.25rem;
+        border-radius: var(--radius-full);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .role-btn {
+        flex: 1;
+        padding: 0.6rem;
+        border-radius: var(--radius-full);
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        text-align: center;
+        background: none;
+        border: none;
+        transition: all var(--transition-fast);
+    }
+    
+    .role-btn.active {
+        background: var(--gradient-primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    }
+    
+    .input-wrapper {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-text-secondary);
+        font-size: 1.1rem;
+    }
+    
+    .login-input {
+        padding-left: 2.75rem !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: var(--radius-sm) !important;
+        color: white !important;
+        height: 48px;
+    }
+    
+    .login-input:focus {
+        border-color: var(--color-primary) !important;
+        box-shadow: 0 0 10px var(--color-primary-glow) !important;
+    }
+    
+    .toggle-pass-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-text-secondary);
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    
+    /* High contrast text overrides to prevent Bootstrap overrides */
+    .text-muted {
+        color: #b5b5ba !important;
+    }
+    .text-secondary {
+        color: #e4e4e7 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-banner">
+    <div class="container">
+        <div class="hero-content animate-slide-up">
+            <span class="badge badge-success mb-3" style="font-size: 0.85rem; padding: 0.4rem 1rem;">DOORSTEP SWIMMING COACHES</span>
+            <h1 class="font-display text-white mb-3" style="font-size: 3.5rem; font-weight: 800; line-height: 1.15;">Your Pool.<br>Our Coaches.</h1>
+            <p class="text-muted mb-5" style="font-size: 1.1rem; line-height: 1.6;">Have access to a swimming pool in your apartment complex, community club, or villa? We match you with verified, elite coaches who travel to your location. Learn swimming in the comfort of your own facility.</p>
+            <div class="flex gap-4">
+                <button type="button" class="btn btn-primary px-5 py-3" onclick="openLoginModal()">Choose a Coach</button>
+                <button type="button" class="btn btn-secondary px-5 py-3" onclick="openLoginModal()">Track Progress</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Concept Section -->
+<div class="features-section" id="features">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="font-display text-white" style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">How It Works</h2>
+            <p class="text-muted">High-performance private training, delivered at your personal pool site.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="feature-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 2rem;">
+                <div style="font-size: 2.2rem; color: var(--color-primary); margin-bottom: 1rem;"><i class="fa-solid fa-location-dot"></i></div>
+                <h4 class="font-display text-white mb-2" style="font-weight: 700;">1. Provide Your Location</h4>
+                <p class="text-muted small mb-0">Specify where your pool is located using our Leaflet geographical map picker. Our coaches will travel directly to you.</p>
+            </div>
+            <div class="feature-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 2rem;">
+                <div style="font-size: 2.2rem; color: var(--color-primary); margin-bottom: 1rem;"><i class="fa-solid fa-user-check"></i></div>
+                <h4 class="font-display text-white mb-2" style="font-weight: 700;">2. Match with Elite Coaches</h4>
+                <p class="text-muted small mb-0">Browse and select certified coaches. Inspect their specialties, ratings, qualifications, and parents' reviews.</p>
+            </div>
+            <div class="feature-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 2rem;">
+                <div style="font-size: 2.2rem; color: var(--color-primary); margin-bottom: 1rem;"><i class="fa-solid fa-check-double"></i></div>
+                <h4 class="font-display text-white mb-2" style="font-weight: 700;">3. Confirm & Track</h4>
+                <p class="text-muted small mb-0">Verify payment, receive your physical-style digital ID card, skip or adjust sessions using an interactive calendar, and monitor progress.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comparison Layout Section -->
+<div class="plans-section" id="plans">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="font-display text-white" style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Choose Your Training Plan</h2>
+            <p class="text-muted">Private training plans tailored to your personal pool schedule.</p>
+        </div>
+        
+        <div class="comparison-wrapper">
+            <div style="overflow-x: auto;">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding-left: 1.5rem; width: 25%;">Coaching Feature</th>
+                            <th style="width: 18.75%;">Demo Session</th>
+                            <th style="width: 18.75%;">Single Class</th>
+                            <th style="width: 18.75%; color: var(--color-primary);">Monthly Coach</th>
+                            <th style="width: 18.75%;">Custom Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="feature-name">Coaching Fee</td>
+                            <td>₹500 <span class="small text-muted">/ session</span></td>
+                            <td>₹750 <span class="small text-muted">/ session</span></td>
+                            <td class="text-white fw-bold">₹6,000 <span class="small text-muted">/ month</span></td>
+                            <td>Dynamic pricing</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Pool Facility</td>
+                            <td colspan="4" class="text-white text-center">Provided by Swimmer (At Your Villa, Apartment, or Club)</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Coaching Staff</td>
+                            <td>Assigned Trainer</td>
+                            <td>Selectable Coach</td>
+                            <td class="text-white">Preferred Coach</td>
+                            <td>Flexible selection</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Class Duration</td>
+                            <td>1 Session</td>
+                            <td>Flexible Single Day</td>
+                            <td class="text-white">1 Month Recurring</td>
+                            <td>Up to 60 Days Max</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Weekly Frequency</td>
+                            <td>Fixed 1 Class</td>
+                            <td>1 Class Booking</td>
+                            <td class="text-white">2 or 3 Days / week</td>
+                            <td>Up to 5 Days / week</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Skip & Makeup Credits</td>
+                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                            <td><i class="fa-solid fa-circle-check text-success"></i> Yes</td>
+                            <td><i class="fa-solid fa-circle-check text-success"></i> Yes</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Pause Subscription</td>
+                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                            <td><i class="fa-solid fa-circle-check text-success"></i> Yes (1 time)</td>
+                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Multi-Person Discounts</td>
+                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                            <td class="text-white">Up to 21% off</td>
+                            <td>Up to 21% off</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Demo</button></td>
+                            <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Single</button></td>
+                            <td><button class="btn btn-primary btn-sm px-4" onclick="openLoginModal()">Book Monthly</button></td>
+                            <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Configure</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal login overlay -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-0">
+        
+        <div class="login-container">
+            <div class="logo-wrapper text-center mb-4">
+                <div class="logo-icon"><i class="fa-solid fa-water"></i></div>
+                <h2 class="font-display text-white mb-1" style="font-weight: 800; font-size: 1.6rem;">Access SwimTrackPro</h2>
+                <p class="text-muted small">Fear less. Swim more.</p>
+            </div>
+            
+            <div class="role-toggle">
+                <button type="button" id="guestBtn" class="role-btn active">Guest</button>
+                <button type="button" id="trainerBtn" class="role-btn">Trainer</button>
+            </div>
+            
+            <form action="/login" method="post" id="loginForm">
+                <input type="hidden" name="role" id="roleInput" value="guest">
+                
+                <div class="form-group mb-3">
+                    <label class="form-label">Username</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" name="name" id="nameInput" class="form-control login-input" placeholder="Enter username" maxlength="50" required autocomplete="username">
+                    </div>
+                    <small id="nameError" class="text-danger d-none" style="margin-top: -1rem; display: block; margin-bottom: 1rem;">Please enter a valid username</small>
+                </div>
+                
+                <div class="form-group mb-3 d-none" id="passwordField">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" name="password" id="passwordInput" class="form-control login-input" placeholder="Enter password">
+                        <button class="toggle-pass-btn" type="button" id="togglePasswordBtn">
+                            <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                    <div id="forgotPasswordContainer" class="d-none" style="text-align: right; margin-top: -0.5rem; margin-bottom: 1rem;">
+                        <a href="/forgot-password" style="font-size: 0.85rem; color: var(--color-primary);">Forgot Password?</a>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3" id="phoneField">
+                    <label class="form-label">Mobile Number</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fa-solid fa-phone"></i></span>
+                        <input type="tel" id="phoneInput" name="phone" class="form-control login-input" placeholder="Enter mobile number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" required autocomplete="tel">
+                    </div>
+                    <small id="phoneError" class="text-danger d-none" style="margin-top: -1rem; display: block; margin-bottom: 1rem;">Please enter a valid 10-digit mobile number</small>
+                </div>
+                
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="text-center mb-3">
+                            <small class="text-danger" style="font-size: 0.85rem; font-weight: 500;">
+                                <i class="fa-solid fa-triangle-exclamation"></i> {{ messages[-1] }}
+                            </small>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <button type="submit" class="register-btn w-100 py-3 mb-3" id="submitBtn">
+                    <span>Login as Guest</span>
+                </button>
+                
+                <div class="footer-links text-center">
+                    Are you a Coach? <a href="/register">Register Here</a>
+                </div>
+            </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let myModal;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        myModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        
+        // Auto show modal if there is a failed message in URL or session flash
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                openLoginModal();
+            {% endif %}
+        {% endwith %}
+        
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('login') === 'true' || params.get('role')) {
+            openLoginModal();
+        }
+    });
+
+    function openLoginModal() {
+        if (myModal) {
+            myModal.show();
+        }
+    }
+
+    const phoneInput = document.getElementById('phoneInput');
+    const phoneError = document.getElementById('phoneError');
+    const loginForm = document.getElementById('loginForm');
+    const guestBtn = document.getElementById('guestBtn');
+    const trainerBtn = document.getElementById('trainerBtn');
+    const roleInput = document.getElementById('roleInput');
+    const phoneField = document.getElementById('phoneField');
+    const passwordField = document.getElementById('passwordField');
+    const passwordInput = document.getElementById('passwordInput');
+    const nameInput = document.getElementById('nameInput');
+    const nameError = document.getElementById('nameError');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function activateTrainerMode() {
+        roleInput.value = 'trainer';
+        nameInput.value = '';
+        phoneInput.value = '';
+        passwordInput.value = '';
+        nameError.classList.add('d-none');
+        phoneError.classList.add('d-none');
+        
+        trainerBtn.classList.add('active');
+        guestBtn.classList.remove('active');
+        
+        phoneField.classList.add('d-none');
+        passwordField.classList.remove('d-none');
+        
+        const forgotPwd = document.getElementById('forgotPasswordContainer');
+        if (forgotPwd) forgotPwd.classList.remove('d-none');
+
+        phoneInput.required = false;
+        passwordInput.required = true;
+        
+        submitBtn.querySelector('span').textContent = 'Login as Trainer';
+        nameInput.focus();
+    }
+
+    function activateGuestMode() {
+        roleInput.value = 'guest';
+        nameInput.value = '';
+        phoneInput.value = '';
+        passwordInput.value = '';
+        nameError.classList.add('d-none');
+        phoneError.classList.add('d-none');
+        
+        guestBtn.classList.add('active');
+        trainerBtn.classList.remove('active');
+        
+        phoneField.classList.remove('d-none');
+        passwordField.classList.add('d-none');
+        
+        const forgotPwd = document.getElementById('forgotPasswordContainer');
+        if (forgotPwd) forgotPwd.classList.add('d-none');
+
+        phoneInput.required = true;
+        passwordInput.required = false;
+        
+        submitBtn.querySelector('span').textContent = 'Login as Guest';
+        nameInput.focus();
+    }
+
+    function activateAdminMode() {
+        roleInput.value = 'admin';
+        nameInput.value = '';
+        phoneInput.value = '';
+        passwordInput.value = '';
+        nameError.classList.add('d-none');
+        phoneError.classList.add('d-none');
+        
+        guestBtn.classList.remove('active');
+        trainerBtn.classList.remove('active');
+        
+        phoneField.classList.add('d-none');
+        passwordField.classList.remove('d-none');
+        
+        phoneInput.required = false;
+        passwordInput.required = true;
+        
+        submitBtn.querySelector('span').textContent = 'Login as Admin';
+        nameInput.focus();
+    }
+
+    trainerBtn.addEventListener('click', activateTrainerMode);
+    guestBtn.addEventListener('click', activateGuestMode);
+
+    const logoIcon = document.querySelector('.logo-icon');
+    if (logoIcon) {
+        logoIcon.addEventListener('dblclick', function() {
+            if (roleInput.value === 'admin') {
+                activateGuestMode();
+            } else {
+                activateAdminMode();
+            }
+        });
+    }
+
+    if (phoneInput) {
+        phoneInput.addEventListener('input', () => {
+            phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+            if (phoneInput.value.length === 10) {
+                phoneError.classList.add('d-none');
+            }
+        });
+    }
+
+    loginForm.addEventListener('submit', (e) => {
+        nameError.classList.add('d-none');
+        phoneError.classList.add('d-none');
+        nameInput.value = nameInput.value.trim();
+
+        if (nameInput.value.length === 0) {
+            e.preventDefault();
+            nameError.classList.remove('d-none');
+            return;
+        }
+
+        if (roleInput.value === 'guest') {
+            const phone = phoneInput.value.trim();
+            phoneInput.value = phone.replace(/\D/g, '');
+            if (!/^\d{10}$/.test(phoneInput.value)) {
+                e.preventDefault();
+                phoneError.classList.remove('d-none');
+                return;
+            }
+        }
+    });
+
+    window.addEventListener('load', () => {
+        const params = new URLSearchParams(window.location.search);
+        const activeRole = params.get('role');
+        if (activeRole === 'trainer') {
+            activateTrainerMode();
+            openLoginModal();
+        } else if (activeRole === 'admin') {
+            activateAdminMode();
+            openLoginModal();
+        } else {
+            activateGuestMode();
+        }
+    });
+
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+    if (togglePasswordBtn && passwordInput) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            if (type === 'text') {
+                togglePasswordIcon.classList.remove('fa-eye');
+                togglePasswordIcon.classList.add('fa-eye-slash');
+            } else {
+                togglePasswordIcon.classList.remove('fa-eye-slash');
+                togglePasswordIcon.classList.add('fa-eye');
+            }
+        });
+    }
+</script>
+{% endblock %}

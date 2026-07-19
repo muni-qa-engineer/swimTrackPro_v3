@@ -1,0 +1,767 @@
+{% extends 'base.html' %}
+
+{% block title %}My Bookings | SwimTrack Pro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    /* Premium Booking Card Container for Dark Theme */
+    .booking-card {
+        background: rgba(24, 24, 27, 0.6) !important;
+        backdrop-filter: var(--backdrop-blur) !important;
+        -webkit-backdrop-filter: var(--backdrop-blur) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: var(--radius-md) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+        transition: all var(--transition-fast) !important;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .booking-card:hover {
+        transform: translateY(-4px) !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+        border-color: rgba(6, 182, 212, 0.3) !important;
+    }
+    
+    .booking-card.past-session {
+        opacity: 0.7;
+    }
+
+    /* Selected Days Badges */
+    .booking-card .badge.bg-light {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: var(--color-text-secondary) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: var(--radius-sm) !important;
+        text-transform: none !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Progress bar styling */
+    .booking-card .progress {
+        height: 6px !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border-radius: var(--radius-full) !important;
+        overflow: hidden;
+    }
+    
+    /* Location description style */
+    .booking-card .text-muted.small.loc-box {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        margin-top: 10px;
+        font-size: 0.8rem !important;
+        color: var(--color-text-secondary) !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Expired/Renew Card styling */
+    .border-dashed {
+        border: 2px dashed rgba(6, 182, 212, 0.25) !important;
+        border-radius: var(--radius-md) !important;
+        background: rgba(6, 182, 212, 0.02) !important;
+        transition: all var(--transition-fast) ease !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem !important;
+        text-decoration: none;
+        min-height: 250px;
+    }
+    
+    .border-dashed:hover {
+        background: rgba(6, 182, 212, 0.05) !important;
+        border-color: var(--color-primary) !important;
+        transform: translateY(-4px) !important;
+    }
+
+    /* Modal styling for dark theme */
+    .modal-content {
+        background: rgba(24, 24, 27, 0.95) !important;
+        backdrop-filter: var(--backdrop-blur);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: white !important;
+    }
+    
+    .modal-header, .modal-footer {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    
+    .modal-title {
+        color: white !important;
+    }
+    
+    .delete-toast {
+        position: fixed;
+        bottom: 90px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--color-success);
+        color: white;
+        padding: 10px 18px;
+        border-radius: var(--radius-md);
+        z-index: 9999;
+        box-shadow: var(--shadow-glow);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h2 class="font-display text-primary" style="font-size: 1.8rem; margin: 0;"><i class="fa-solid fa-clipboard-list"></i> My Bookings</h2>
+    </div>
+
+    <div id="bookingsSection">
+        <div class="row g-0">
+            <div class="col-12 px-0">
+                {% if not bookings %}
+                    <p class="text-muted text-center py-5">No bookings found. Start by booking a slot!</p>
+                {% endif %}
+                
+                {% set grouped_bookings = {} %}
+                {% for b in bookings|sort(attribute='start_date') %}
+                    {% set group_key = ((b.created_by or 'N/A')|lower|trim) ~ '|' ~ ((b.owner_phone or 'No Phone')|trim) %}
+                    {% if group_key not in grouped_bookings %}
+                        {% set _ = grouped_bookings.update({group_key: []}) %}
+                    {% endif %}
+                    {% set _ = grouped_bookings[group_key].append(b) %}
+                {% endfor %}
+
+                {% for group_key, group_items in grouped_bookings.items() %}
+                {% set group_name = group_items[0].created_by or 'N/A' %}
+                {% set group_phone = group_key.split('|')[1] %}
+                {% set ns = namespace(has_active=false, has_booked=false, show_add_card=false) %}
+                {% for booking in group_items %}
+                    {% if not booking.is_completed %}
+                        {% if (booking.completed_classes or 0) > 0 %}
+                            {% set ns.has_active = true %}
+                        {% else %}
+                            {% set ns.has_booked = true %}
+                        {% endif %}
+                        {% if booking.remaining_classes is defined and booking.remaining_classes <= 3 %}
+                            {% set ns.show_add_card = true %}
+                        {% endif %}
+                    {% else %}
+                        {% set ns.show_add_card = true %}
+                    {% endif %}
+                {% endfor %}
+
+                <div class="col-12 mb-4">
+                    <div class="glass-panel" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.05);">
+                        <div class="flex justify-between items-center trainer-group-header {% if role == 'trainer' %}cursor-pointer{% endif %}" data-group-key="{{ group_key }}" style="background: rgba(255, 255, 255, 0.02); padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                {% if role == 'trainer' %}
+                                <span class="trainer-group-arrow me-2">{% if loop.first %}▼{% else %}<i class="fa-solid fa-play"></i>{% endif %}</span>
+                                {% endif %}
+                                <strong style="font-size: 1.1rem;"><i class="fa-solid fa-user text-primary"></i> {{ group_name|title }}</strong>
+                                <span class="text-muted ms-3" style="font-size: 0.9rem;"><i class="fa-solid fa-phone"></i> {{ group_phone }}</span>
+                                {% if ns.has_active %}
+                                <span class="ms-2 d-inline-block rounded-circle" title="Active Booking" style="width:8px;height:8px;background:var(--color-success);vertical-align:middle;"></span>
+                                {% elif ns.has_booked %}
+                                <span class="ms-2 d-inline-block rounded-circle" title="Booked" style="width:8px;height:8px;background:var(--color-primary);vertical-align:middle;"></span>
+                                {% endif %}
+                            </div>
+
+                            <span class="badge badge-success">
+                                {{ group_items|length }} Booking{{ 's' if group_items|length > 1 else '' }}
+                            </span>
+                        </div>
+
+                        <div class="trainer-group-body" style="padding: 1.5rem; {% if role == 'trainer' and not loop.first %}display:none;{% endif %}">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                                {% for b in group_items %}
+                                <div class="booking-card h-100 {% if b.is_completed %}past-session{% endif %}">
+                                    <div class="card-body d-flex flex-column" style="padding: 1.5rem;">
+                                        <div class="flex justify-between items-start mb-3">
+                                            <div>
+                                                <h5 class="font-display text-primary" style="font-size: 1.15rem; margin: 0;">🏊 {{ b.student|title }}</h5>
+                                                <div class="text-secondary mt-1" style="font-size: 0.8rem;">
+                                                    Coach: <span class="fw-bold text-accent">{{ (trainer_map.get(b.trainer_username.lower().strip(), b.trainer_username) or 'Unassigned')|title }}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="flex items-center gap-2">
+                                                <span class="badge badge-info">
+                                                    <i class="fa-solid fa-box"></i> {{ b.package or 'Single' }}
+                                                </span>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-secondary p-2 d-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Download Card" style="width: 32px; height: 32px; border-radius: 50%;">
+                                                        <i class="fa-solid fa-download" style="font-size: 0.85rem;"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="background: rgba(24, 24, 27, 0.95); border: 1px solid rgba(255,255,255,0.08); font-size: 0.85rem;">
+                                                        <li><a class="dropdown-item py-2 text-white" href="#" onclick="downloadBooking(this, 'png', '{{ b.id }}'); return false;"><i class="fa-regular fa-image text-primary me-2"></i> PNG Image</a></li>
+                                                        <li><a class="dropdown-item py-2 text-white" href="#" onclick="downloadBooking(this, 'jpeg', '{{ b.id }}'); return false;"><i class="fa-solid fa-image text-success me-2"></i> JPEG Image</a></li>
+                                                        <li><a class="dropdown-item py-2 text-white" href="#" onclick="downloadBooking(this, 'pdf', '{{ b.id }}'); return false;"><i class="fa-solid fa-file-pdf text-danger me-2"></i> PDF Document</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3" style="font-size: 0.85rem;">
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                   <span class="text-muted"><i class="fa-regular fa-calendar"></i> Start: </span>
+                                                   <strong>{{ b.start_date[8:10] }}/{{ b.start_date[5:7] }}/{{ b.start_date[0:4] }}</strong>
+                                                </div>
+                                                <div>
+                                                   <span class="text-muted"><i class="fa-regular fa-clock"></i> Time: </span>
+                                                   <strong>{{ b.time }}</strong>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if b.end_date %}
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                  <span class="text-muted"><i class="fa-regular fa-calendar-days"></i> End: </span>
+                                                  <strong>{{ b.end_date[8:10] }}/{{ b.end_date[5:7] }}/{{ b.end_date[0:4] }}</strong>
+                                                </div>
+                                                <div>
+                                                  <span class="text-muted"><i class="fa-solid fa-users"></i> Persons: </span>
+                                                  <strong>{{ b.persons or 1 }}</strong>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+                                            <div class="mt-3">
+                                                <div class="text-muted mb-1"><i class="fa-solid fa-book"></i> Selected Days</div>
+                                                <div class="flex flex-wrap gap-1">
+                                                    {% if b.selected_days and b.selected_days|trim != '' %}
+                                                        {% for day in b.selected_days.split(',') %}
+                                                        <span class="badge bg-light text-dark border px-2 py-1">
+                                                            {{ day.strip()[:3] }}
+                                                        </span>
+                                                        {% endfor %}
+                                                    {% elif b.package == 'Single' %}
+                                                        <span class="badge bg-light text-dark border px-2 py-1">Single</span>
+                                                    {% else %}
+                                                        <span class="badge badge-warning">No Days Selected</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {% if not b.is_completed and b.total_classes and b.total_classes > 0 %}
+                                        <div class="mt-3">
+                                            <div class="flex justify-between text-success mb-1" style="font-size: 0.8rem; font-weight: 600;">
+                                                <span>Progress: {{ b.completed_classes }} / {{ b.total_classes }} Completed</span>
+                                                {% if b.remaining_classes > 0 %}
+                                                    <span class="text-muted">({{ b.remaining_classes }} Left)</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="progress mb-3">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ (b.completed_classes * 100 / b.total_classes)|round(0, 'floor') }}%;" aria-valuenow="{{ b.completed_classes }}" aria-valuemin="0" aria-valuemax="{{ b.total_classes }}"></div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="flex justify-between items-center mb-2" style="font-size: 0.9rem;">
+                                            <div>
+                                                <strong>₹{{ b.fee }}</strong>
+                                            </div>
+                                            <div>
+                                                {% if b.status == 'Paid' %}
+                                                    <span class="badge badge-success">💰 Paid</span>
+                                                {% elif b.status == 'Pending' %}
+                                                    <span class="badge badge-warning">💰 Pending</span>
+                                                {% else %}
+                                                    <span class="badge badge-danger">💰 Unpaid</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="loc-box text-muted small mb-2">
+                                            <i class="fa-solid fa-location-dot"></i> {{ b.location or 'Location not added' }}
+                                        </div>
+
+                                        <div class="mb-3" style="font-size: 0.8rem;">
+                                            <b>Status:</b>
+                                            {% if b.delete_requested %}
+                                                <span class="text-danger"><i class="fa-solid fa-circle"></i> Delete Requested</span>
+                                            {% elif b.pause_status == 'Paused' or b.pause_status == 'PAUSED' %}
+                                                <span class="badge badge-warning"><i class="fa-solid fa-pause"></i> PAUSED</span>
+                                            {% elif b.pause_status == 'Approval Pending' %}
+                                                <span class="badge badge-info"><i class="fa-solid fa-circle text-warning"></i> Approval Pending</span>
+                                            {% elif b.is_completed %}
+                                                <span class="badge badge-success"><i class="fa-regular fa-circle text-secondary"></i> Completed</span>
+                                            {% elif (b.completed_classes or 0) > 0 %}
+                                                <span class="text-success"><i class="fa-solid fa-circle"></i> Active</span>
+                                            {% else %}
+                                                <span class="text-primary"><i class="fa-solid fa-circle"></i> Booked</span>
+                                            {% endif %}
+                                        </div>
+
+                                        {% if b.pause_status == 'Paused' or b.pause_status == 'PAUSED' %}
+                                        <div class="alert alert-warning p-2 rounded-3 border-warning border-opacity-25 text-center mt-2 mb-0" style="font-size: 0.8rem; background-color: rgba(245, 158, 11, 0.08); color: var(--color-warning);">
+                                            <strong><i class="fa-solid fa-pause"></i> Paused:</strong> <span class="countdown-timer ms-1 fw-bold" data-auto-resume="{{ b.auto_resume_date }}">Auto resumes...</span>
+                                        </div>
+                                        {% endif %}
+
+                                        {% if b.pause_status == 'Approval Pending' %}
+                                        <div class="alert alert-info p-3 rounded-3 border-info border-opacity-25 text-start mt-2" style="font-size: 0.8rem; background-color: rgba(6, 182, 212, 0.08); color: var(--color-primary);">
+                                            <strong><i class="fa-solid fa-circle text-warning"></i> Approval Pending</strong><br>
+                                            <span class="d-block mt-1">Your pause request is awaiting approval.</span>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="mt-auto pt-3 flex flex-col gap-2">
+                                          {% if b.is_completed %}
+                                              {% if role == 'trainer' %}
+                                                  <div class="text-end">
+                                                      <form action="/edit/{{ b.id }}" method="GET" class="inline-form" onsubmit="saveScrollPosition()">
+                                                          <button type="submit" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: var(--radius-sm);">Edit</button>
+                                                      </form>
+                                                  </div>
+                                              {% endif %}
+                                          {% elif b.pause_status == 'Approval Pending' %}
+                                              {% if role == 'trainer' %}
+                                                  <div class="p-3 bg-light rounded-3 text-start border" style="background: rgba(255,255,255,0.02) !important; border-color: rgba(255,255,255,0.05) !important;">
+                                                      <div class="fw-bold text-white mb-2"><i class="fa-solid fa-circle-info text-info me-1"></i> Pause Approval Request</div>
+                                                      <div class="small text-muted mb-1"><strong>Reason:</strong> {{ b.pause_reason }}</div>
+                                                      {% if b.pause_other_reason %}
+                                                      <div class="small text-muted mb-3"><strong>Details:</strong> {{ b.pause_other_reason }}</div>
+                                                      {% endif %}
+                                                      
+                                                      <div class="flex gap-2 mb-2">
+                                                          <button type="button" class="btn btn-primary btn-sm flex-grow-1" onclick="approvePause('{{ b.id }}')">
+                                                              Approve
+                                                          </button>
+                                                          <button type="button" class="btn btn-outline btn-sm flex-grow-1" onclick="showRejectInput('{{ b.id }}')">
+                                                              Reject
+                                                          </button>
+                                                      </div>
+                                                      
+                                                      <div class="d-none mt-2" id="rejectContainer-{{ b.id }}">
+                                                          <textarea class="form-control form-control-sm mb-2" id="rejectReason-{{ b.id }}" placeholder="Reason for rejection (required)..." style="background: rgba(0,0,0,0.4); color: white;" required></textarea>
+                                                          <button type="button" class="btn btn-danger w-100 py-1" onclick="submitRejection('{{ b.id }}')">
+                                                              Confirm Reject
+                                                          </button>
+                                                      </div>
+                                                  </div>
+                                              {% endif %}
+                                          {% elif b.delete_requested %}
+                                              {% if role == 'trainer' %}
+                                                  <div class="flex gap-2">
+                                                      <form action="/approve_delete/{{ b.id }}" method="POST" class="w-50" onsubmit="saveScrollPosition(); return confirm('Permanently delete this booking?');">
+                                                          <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-check"></i> Approve</button>
+                                                      </form>
+                                                      <form action="/reject_delete/{{ b.id }}" method="POST" class="w-50" onsubmit="saveScrollPosition()">
+                                                          <button type="submit" class="btn btn-secondary w-100">Reject</button>
+                                                      </form>
+                                                  </div>
+                                               {% endif %}
+                                          {% else %}
+                                              {% if role == 'trainer' or (b.completed_classes or 0) == 0 %}
+                                              <div class="flex justify-end gap-2">
+                                                  <form action="/edit/{{ b.id }}" method="GET" class="d-inline" onsubmit="saveScrollPosition()">
+                                                      <button type="submit" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: var(--radius-sm);">Edit</button>
+                                                  </form>
+                                                  <form action="/delete/{{ b.id }}" method="POST" class="d-inline delete-booking-form" onsubmit="saveScrollPosition();">
+                                                      <button type="button" class="btn btn-outline animated-delete-btn" style="border-color: var(--color-danger); color: var(--color-danger); font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: var(--radius-sm);">
+                                                          Delete
+                                                      </button>
+                                                  </form>
+                                              </div>
+                                              {% endif %}
+
+                                              {% if role != 'trainer' and b.status != 'Paid' and (b.fee or 0)|float > 0 %}
+                                              <a href="upi://pay?pa={{ upi_id }}&pn={{ account_holder_name|urlencode }}&tn=SwimTrackPro%20Payment" class="btn btn-primary w-100 py-2.5" style="text-align: center;">
+                                                 <i class="fa-solid fa-credit-card"></i> Pay Now (₹{{ b.fee }})
+                                              </a>
+                                              {% endif %}
+                                              
+                                              {% if role != 'trainer' and b.package in ('Monthly', 'Custom') and not b.is_completed and not b.delete_requested and (b.completed_classes or 0) > 0 and (b.remaining_classes or 0) > 0 %}
+                                                  {% if b.pause_status == 'Paused' or b.pause_status == 'PAUSED' %}
+                                                      <button type="button" class="btn btn-primary w-100 py-2.5" onclick="showResumeModal('{{ b.id }}')">
+                                                          <i class="fa-solid fa-play"></i> Resume Package
+                                                      </button>
+                                                  {% elif b.pause_status == 'Approval Pending' %}
+                                                      <button type="button" class="btn btn-outline w-100 py-2.5" disabled>
+                                                          <i class="fa-solid fa-hourglass"></i> Approval Pending
+                                                      </button>
+                                                  {% else %}
+                                                      {% if (b.pause_count or 0) > 0 %}
+                                                          <button type="button" class="btn btn-outline w-100 py-2.5" style="opacity: 0.5;" title="Pause already used." disabled>
+                                                              <i class="fa-solid fa-ban"></i> Pause Used
+                                                          </button>
+                                                      {% else %}
+                                                          <button type="button" class="btn btn-outline w-100 py-2.5 animate-pulse-glow" style="border-color: var(--color-warning); color: var(--color-warning);" onclick="showPauseModal('{{ b.id }}', '{{ b.remaining_classes }}', 0)">
+                                                              <i class="fa-solid fa-pause"></i> Pause Package
+                                                          </button>
+                                                      {% endif %}
+                                                  {% endif %}
+                                              {% endif %}
+                                          {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                                {% if ns.show_add_card and role != 'trainer' %}
+                                <div class="col-12 col-lg-6 col-xl-4 mb-2">
+                                    <a href="{{ url_for('booking_page') }}" class="border-dashed">
+                                        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                            <div style="font-size: 2.5rem; color: var(--color-primary); font-weight: 300;">+</div>
+                                            <h5 class="text-primary font-display" style="font-size: 1.15rem; margin-top: 0.5rem; margin-bottom: 0.25rem;">Renew Package</h5>
+                                            <p class="text-muted" style="font-size: 0.8rem;">Completed or expiring soon.</p>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endif %}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pause Package Modal -->
+<div class="modal fade" id="pauseModal" tabindex="-1" aria-labelledby="pauseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="pauseModalLabel"><i class="fa-solid fa-pause text-primary"></i> Pause Package</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="pauseForm" method="POST" onsubmit="submitPauseForm(event)">
+                <div class="modal-body pt-3">
+                    <p class="text-secondary small mb-3" id="pauseModalDesc">
+                        You can pause this package only once. Maximum pause duration is <strong>7 calendar days</strong>.
+                    </p>
+                    
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-md); font-size: 0.85rem; line-height: 1.6;" class="mb-3">
+                        <div>Remaining Classes: <span id="pauseRemainingClasses" class="fw-bold text-success"></span></div>
+                        <div>Auto Resume Date: <span id="pauseAutoResumeDate" class="fw-bold text-primary"></span></div>
+                    </div>
+                    
+                    <input type="hidden" id="pauseBookingId" name="booking_id">
+                    
+                    <div class="form-group">
+                        <label for="pauseReasonSelect" class="form-label">Reason for Pause <span class="text-danger">*</span></label>
+                        <select class="form-control" id="pauseReasonSelect" name="reason" onchange="togglePauseOtherReason()" required style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                            <option value="">-- Select a Reason --</option>
+                            <option value="Health Issues">Health Issues</option>
+                            <option value="Injury">Injury</option>
+                            <option value="Family Emergency">Family Emergency</option>
+                            <option value="Vacation / Trip">Vacation / Trip</option>
+                            <option value="School / Exams">School / Exams</option>
+                            <option value="Office / Business Travel">Office / Business Travel</option>
+                            <option value="Personal Reason">Personal Reason</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group d-none" id="pauseOtherReasonContainer">
+                        <label for="pauseOtherReasonInput" class="form-label">Specify Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="pauseOtherReasonInput" name="other_reason" rows="2" placeholder="Please specify your reason for pausing..." style="background: rgba(0,0,0,0.4); color: white;"></textarea>
+                    </div>
+
+                    <div class="form-group d-none" id="pauseCommentsContainer">
+                        <label for="pauseCommentsInput" class="form-label">Comments (Optional)</label>
+                        <textarea class="form-control" id="pauseCommentsInput" name="comments" rows="2" placeholder="Provide details to help trainer/admin review your request..." style="background: rgba(0,0,0,0.4); color: white;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="pauseSubmitBtn" style="background: var(--color-warning); color: black; border: none;">Pause Package</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Resume Package Modal -->
+<div class="modal fade" id="resumeModal" tabindex="-1" aria-labelledby="resumeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="resumeModalLabel"><i class="fa-solid fa-play text-primary"></i> Resume Package</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="resumeForm" method="POST" onsubmit="submitResumeForm(event)">
+                <div class="modal-body pt-3">
+                    <p class="text-secondary small">
+                        Are you sure you want to resume this package? The remaining sessions will be rescheduled starting from today (or the next available recurring class date).
+                    </p>
+                    <input type="hidden" id="resumeBookingId" name="booking_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="resumeSubmitBtn">Resume Package</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+    async function downloadBooking(btn, format, bookingId) {
+        const card = btn.closest('.booking-card');
+        if (!card) return;
+
+        const actions = card.querySelector('.mt-auto.pt-3');
+        const dropdown = card.querySelector('.dropdown');
+        const originalActionsDisplay = actions ? actions.style.display : '';
+        const originalDropdownDisplay = dropdown ? dropdown.style.display : '';
+        
+        if (actions) actions.style.display = 'none';
+        if (dropdown) dropdown.style.display = 'none';
+
+        try {
+            const canvas = await html2canvas(card, {
+                scale: 2,
+                backgroundColor: '#18181b',
+                useCORS: true,
+                logging: false
+            });
+
+            if (actions) actions.style.display = originalActionsDisplay;
+            if (dropdown) dropdown.style.display = originalDropdownDisplay;
+
+            const filename = `booking_${bookingId}_swimtrackpro`;
+
+            if (format === 'png' || format === 'jpeg') {
+                const imgData = canvas.toDataURL(`image/${format}`, 1.0);
+                const link = document.createElement('a');
+                link.download = `${filename}.${format}`;
+                link.href = imgData;
+                link.click();
+            } else if (format === 'pdf') {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new window.jspdf.jsPDF({
+                    orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save(`${filename}.pdf`);
+            }
+        } catch (e) {
+            console.error("Error generating image:", e);
+            if (actions) actions.style.display = originalActionsDisplay;
+            if (dropdown) dropdown.style.display = originalDropdownDisplay;
+            alert("Could not generate download. Please try again.");
+        }
+    }
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='common.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Delete confirm button
+    document.querySelectorAll('.animated-delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.dataset.confirmed !== 'true') {
+                this.dataset.confirmed = 'true';
+                this.classList.remove('btn-outline-danger');
+                this.classList.add('btn-primary');
+                this.style.background = 'var(--color-danger)';
+                this.style.borderColor = 'var(--color-danger)';
+                this.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Confirm Delete';
+
+                clearTimeout(this.resetTimer);
+                this.resetTimer = setTimeout(() => {
+                    if (this.dataset.confirmed === 'true' && !this.disabled) {
+                        this.dataset.confirmed = 'false';
+                        this.classList.remove('btn-primary');
+                        this.classList.add('btn-outline');
+                        this.style.background = 'none';
+                        this.style.borderColor = 'var(--color-danger)';
+                        this.style.color = 'var(--color-danger)';
+                        this.innerHTML = 'Delete';
+                    }
+                }, 5000);
+                return;
+            }
+
+            this.disabled = true;
+            clearTimeout(this.resetTimer);
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Deleting...';
+
+            const toast = document.createElement('div');
+            toast.className = 'delete-toast';
+            toast.innerText = 'Deleting booking, please wait...';
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                this.closest('form').submit();
+            }, 700);
+        });
+    });
+
+    // Trainer group collapse
+    const headers = document.querySelectorAll('.trainer-group-header');
+    headers.forEach(header => {
+        header.addEventListener('click', function () {
+            const currentBody = this.parentElement.querySelector('.trainer-group-body');
+            if (!currentBody) return;
+
+            const isOpen = currentBody.style.display !== 'none';
+            document.querySelectorAll('.trainer-group-body').forEach(body => body.style.display = 'none');
+            document.querySelectorAll('.trainer-group-arrow').forEach(arrow => arrow.innerHTML = '<i class="fa-solid fa-play"></i>');
+
+            if (!isOpen) {
+                currentBody.style.display = '';
+                const arrow = this.querySelector('.trainer-group-arrow');
+                if (arrow) arrow.textContent = '▼';
+                sessionStorage.setItem('trainerOpenGroup', this.dataset.groupKey);
+            }
+        });
+    });
+
+    const savedGroup = sessionStorage.getItem('trainerOpenGroup');
+    if (savedGroup) {
+        const savedHeader = document.querySelector(`.trainer-group-header[data-group-key="${savedGroup}"]`);
+        if (savedHeader) {
+            document.querySelectorAll('.trainer-group-body').forEach(body => body.style.display = 'none');
+            document.querySelectorAll('.trainer-group-arrow').forEach(arrow => arrow.innerHTML = '<i class="fa-solid fa-play"></i>');
+            const body = savedHeader.parentElement.querySelector('.trainer-group-body');
+            if (body) body.style.display = '';
+            const arrow = savedHeader.querySelector('.trainer-group-arrow');
+            if (arrow) arrow.textContent = '▼';
+        }
+    }
+});
+
+let pauseModalObj = null;
+let resumeModalObj = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    pauseModalObj = new bootstrap.Modal(document.getElementById('pauseModal'));
+    resumeModalObj = new bootstrap.Modal(document.getElementById('resumeModal'));
+    
+    // Countdown timer updates
+    document.querySelectorAll('.countdown-timer').forEach(el => {
+        const resumeDateStr = el.getAttribute('data-auto-resume');
+        if (!resumeDateStr) return;
+        try {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const resumeParts = resumeDateStr.split('-');
+            const resumeDate = new Date(resumeParts[0], resumeParts[1] - 1, resumeParts[2]);
+            resumeDate.setHours(0, 0, 0, 0);
+            
+            const diffTime = resumeDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays > 1) el.textContent = `Auto resumes in ${diffDays} days.`;
+            else if (diffDays === 1) el.textContent = `Auto resumes tomorrow.`;
+            else if (diffDays === 0) el.textContent = `Auto resumes today!`;
+            else el.textContent = `Auto resume pending.`;
+        } catch (e) {
+            el.textContent = 'Auto resume scheduled.';
+        }
+    });
+});
+
+window.showPauseModal = function(bookingId, remainingClasses, pauseCount) {
+    document.getElementById('pauseBookingId').value = bookingId;
+    document.getElementById('pauseRemainingClasses').textContent = remainingClasses;
+    
+    const today = new Date();
+    const autoResume = new Date();
+    autoResume.setDate(today.getDate() + 7);
+    
+    document.getElementById('pauseAutoResumeDate').textContent = autoResume.toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'short', year: 'numeric'
+    });
+    
+    document.getElementById('pauseReasonSelect').value = '';
+    document.getElementById('pauseOtherReasonInput').value = '';
+    document.getElementById('pauseOtherReasonContainer').classList.add('d-none');
+    
+    pauseModalObj.show();
+};
+
+window.togglePauseOtherReason = function() {
+    const select = document.getElementById('pauseReasonSelect');
+    const container = document.getElementById('pauseOtherReasonContainer');
+    const input = document.getElementById('pauseOtherReasonInput');
+    if (select.value === 'Other') {
+        container.classList.remove('d-none');
+        input.required = true;
+    } else {
+        container.classList.add('d-none');
+        input.required = false;
+    }
+};
+
+window.submitPauseForm = function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('pauseSubmitBtn');
+    btn.disabled = true;
+    
+    const bookingId = document.getElementById('pauseBookingId').value;
+    const reason = document.getElementById('pauseReasonSelect').value;
+    const otherReason = document.getElementById('pauseOtherReasonInput').value;
+    const comments = document.getElementById('pauseCommentsInput') ? document.getElementById('pauseCommentsInput').value : '';
+    
+    const formData = new FormData();
+    formData.append('booking_id', bookingId);
+    formData.append('reason', reason);
+    formData.append('other_reason', otherReason);
+    formData.append('comments', comments);
+    
+    fetch('/booking/pause', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.error || 'Failed to process pause.');
+            btn.disabled = false;
+        }
+    });
+};
+
+window.showResumeModal = function(bookingId) {
+    document.getElementById('resumeBookingId').value = bookingId;
+    resumeModalObj.show();
+};
+
+window.submitResumeForm = function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('resumeSubmitBtn');
+    btn.disabled = true;
+    
+    const bookingId = document.getElementById('resumeBookingId').value;
+    const formData = new FormData();
+    formData.append('booking_id', bookingId);
+    
+    fetch('/booking/resume', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.error || 'Failed to resume.');
+            btn.disabled = false;
+        }
+    });
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

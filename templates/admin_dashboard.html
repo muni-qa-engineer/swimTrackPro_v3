@@ -1,0 +1,1126 @@
+{% extends 'base.html' %}
+
+{% block title %}Super Admin Dashboard - SwimTrackPro{% endblock %}
+
+{% block body_class %}dashboard-body{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    /* Admin specific dashboard adjustments */
+    .dashboard-container {
+        min-height: calc(100vh - 73px);
+    }
+    
+    .admin-main {
+        flex: 1;
+        padding: 2.5rem;
+        background-color: var(--color-bg);
+        color: white;
+    }
+    
+    /* Dark tables styling */
+    .table-responsive {
+        background: rgba(24, 24, 27, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        backdrop-filter: var(--backdrop-blur);
+    }
+    
+    .table {
+        color: white !important;
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.08) !important;
+        color: var(--color-text-secondary) !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+    }
+    
+    .table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 1.2rem 0.75rem !important;
+        color: var(--color-text-secondary);
+    }
+    
+    .table tbody tr:hover td {
+        color: white;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Modal styling for dark theme */
+    .modal-content {
+        background: rgba(24, 24, 27, 0.95) !important;
+        backdrop-filter: var(--backdrop-blur);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: white !important;
+    }
+    
+    .modal-header, .modal-footer {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    
+    .modal-title {
+        color: white !important;
+    }
+    
+    .modal-close-btn {
+        color: white;
+        opacity: 0.7;
+    }
+    
+    .modal-close-btn:hover {
+        opacity: 1;
+    }
+    
+    .form-control:disabled {
+        background-color: rgba(0, 0, 0, 0.4) !important;
+        color: var(--color-text-muted) !important;
+    }
+    
+    .delete-toast {
+        position: fixed;
+        bottom: 90px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--color-danger);
+        color: white;
+        padding: 10px 18px;
+        border-radius: var(--radius-md);
+        z-index: 9999;
+        box-shadow: var(--shadow-glow);
+    }
+
+    /* Override bootstrap default inputs in tables */
+    select.form-select {
+        background-color: rgba(0, 0, 0, 0.4) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Include Chart.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="dashboard-container">
+    
+    <!-- Main Content Panel -->
+    <main class="admin-main animate-fade-in" style="flex: 1; padding: 2rem; overflow-y: auto;">
+        
+        <!-- Horizontal Tab Bar (Replaces Sidebar) -->
+        <div class="glass-panel mb-4" id="adminHorizontalTabs" style="padding: 0.75rem; overflow-x: auto; display: flex; gap: 0.75rem; flex-wrap: nowrap; white-space: nowrap; border-radius: var(--radius-sm);">
+            <button class="btn btn-primary py-2 px-4 admin-tab-btn" onclick="switchSection('dashboard', this)" style="border-radius: var(--radius-sm);">Dashboard</button>
+            <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('bookings', this)" style="border-radius: var(--radius-sm);">Bookings</button>
+            <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('students', this)" style="border-radius: var(--radius-sm);">Students</button>
+            <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('coaches', this)" style="border-radius: var(--radius-sm);">Coaches</button>
+            <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('sessions', this)" style="border-radius: var(--radius-sm);">Sessions</button>
+            <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('payments', this)" style="border-radius: var(--radius-sm);">Payments</button>
+            <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('reports', this)" style="border-radius: var(--radius-sm);">Reports</button>
+            <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('settings', this)" style="border-radius: var(--radius-sm);">Settings</button>
+            <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="showMyIdCard()" style="border-radius: var(--radius-sm);">My ID Card</button>
+        </div>
+
+
+        
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6" style="flex-wrap: wrap; gap: 1rem;">
+            <h2 class="font-display text-primary" style="font-size: 2rem; margin: 0;" id="pageTitle">Dashboard</h2>
+            
+            <div class="flex items-center gap-3">
+                <div style="text-align: right;" class="d-none d-sm-block">
+                    <div style="font-weight: 700;">Super Admin</div>
+                    <div class="text-muted" style="font-size: 0.8rem;">admin@swimtrackpro.com</div>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    👑
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Notifications -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="glass-panel animate-fade-in" style="padding: 1rem 1.5rem; margin-bottom: 1.5rem; border-color: rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: space-between;">
+                        <span class="text-primary"><i class="fa-solid fa-circle-info me-2"></i> {{ message }}</span>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.parentElement.remove()"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Content Sections Container -->
+        <div id="contentSections">
+            
+            <!-- SECTION: Dashboard Overview -->
+            <div id="section-dashboard" class="dashboard-section">
+                <!-- Stats Row -->
+                <div class="metrics-grid">
+                    <div class="metric-card success">
+                        <div class="metric-icon"><i class="fa-solid fa-user-plus"></i></div>
+                        <div>
+                            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Total Bookings</div>
+                            <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">{{ bookings|length }}</div>
+                        </div>
+                    </div>
+                    <div class="metric-card primary">
+                        <div class="metric-icon"><i class="fa-regular fa-calendar-check"></i></div>
+                        <div>
+                            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Today's Sessions</div>
+                            <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">{{ today_sessions|length }}</div>
+                        </div>
+                    </div>
+                    <div class="metric-card warning">
+                        <div class="metric-icon"><i class="fa-solid fa-user-group"></i></div>
+                        <div>
+                            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Total Students</div>
+                            <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">{{ students|length }}</div>
+                        </div>
+                    </div>
+                    <div class="metric-card accent">
+                        <div class="metric-icon"><i class="fa-solid fa-user-tie"></i></div>
+                        <div>
+                            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Total Coaches</div>
+                            <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">{{ trainers|length }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pause/Resume Stats Row -->
+                <div class="metrics-grid">
+                    <div class="metric-card warning" style="border-left: 4px solid var(--color-warning);">
+                        <div class="metric-icon"><i class="fa-solid fa-circle-pause"></i></div>
+                        <div>
+                            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Paused Packages</div>
+                            <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">{{ paused_packages_count }}</div>
+                        </div>
+                    </div>
+                    <div class="metric-card primary" style="border-left: 4px solid var(--color-primary);">
+                        <div class="metric-icon"><i class="fa-solid fa-arrows-spin"></i></div>
+                        <div>
+                            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Auto Resume Today</div>
+                            <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">{{ auto_resume_today_count }}</div>
+                        </div>
+                    </div>
+                    <div class="metric-card success" style="border-left: 4px solid var(--color-success);">
+                        <div class="metric-icon"><i class="fa-solid fa-calendar-minus"></i></div>
+                        <div>
+                            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Paused This Week</div>
+                            <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">{{ paused_this_week_count }}</div>
+                        </div>
+                    </div>
+                    <div class="metric-card accent" style="border-left: 4px solid var(--color-danger);">
+                        <div class="metric-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div>
+                            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Resume Pending</div>
+                            <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">{{ resume_pending_count }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mid-Row Grid: Upcoming Sessions & Bookings Overview -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Left: Upcoming Sessions -->
+                    <div class="glass-panel lg:col-span-2" style="padding: 1.5rem;">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-display" style="font-size: 1.25rem; margin: 0;">Upcoming Sessions</h3>
+                            <a href="#" class="text-primary small" onclick="switchSection('sessions')">View All</a>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            {% for session in today_sessions[:4] %}
+                            <div class="flex items-center justify-between p-3 rounded-3" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
+                                <div class="flex items-center gap-3">
+                                    <div style="background: rgba(6, 182, 212, 0.1); color: var(--color-primary); font-weight: 700; padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+                                        {{ session.time }}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600;">{{ session.package|title }} Training</div>
+                                        <div class="text-muted" style="font-size: 0.8rem;">🏊 Swimmer: {{ session.student|title }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-secondary" style="font-size: 0.85rem;">
+                                    <i class="fa-solid fa-user-tie"></i> Coach {{ session.trainer_username|title }}
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted" style="text-align: center; padding: 2rem 0;">No upcoming sessions scheduled for today.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Right: Bookings Overview Chart -->
+                    <div class="glass-panel" style="padding: 1.5rem;">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-display" style="font-size: 1.25rem; margin: 0;">Bookings Overview</h3>
+                            <span class="badge badge-info">Weekly</span>
+                        </div>
+                        <div style="position: relative; height: 200px;">
+                            <canvas id="bookingsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Section: Recent Bookings & Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Bookings Table -->
+                    <div class="glass-panel lg:col-span-2" style="padding: 1.5rem;">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-display" style="font-size: 1.25rem; margin: 0;">Recent Bookings</h3>
+                            <a href="#" class="text-primary small" onclick="switchSection('bookings')">View All</a>
+                        </div>
+                        <div class="table-responsive" style="background: none; border: none; padding: 0;">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Swimmer</th>
+                                        <th>Package</th>
+                                        <th>Assigned Coach</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in bookings[:5] %}
+                                    <tr>
+                                        <td>
+                                            <div style="font-weight: 700; color: white;">{{ booking.student|title }}</div>
+                                            <div class="text-muted" style="font-size: 0.8rem;">{{ booking.owner_phone }}</div>
+                                        </td>
+                                        <td>{{ booking.package|title }}</td>
+                                        <td>
+                                            <span class="badge badge-info" style="text-transform: none;">
+                                                <i class="fa-solid fa-user"></i> Coach {{ booking.trainer_username|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if booking.status|lower == 'paid' %}
+                                                <span class="badge badge-success">Paid</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Panel -->
+                    <div class="glass-panel" style="padding: 1.5rem;">
+                        <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1.25rem;">Quick Actions</h3>
+                        <div class="flex flex-col gap-3">
+                            <button class="btn btn-primary w-100 py-3 flex items-center gap-3" style="text-align: left; border-radius: var(--radius-md);" onclick="switchSection('coaches')">
+                                <i class="fa-solid fa-user-plus" style="font-size: 1.5rem;"></i>
+                                <div>
+                                    <div style="font-weight: 700;">Manage Approvals</div>
+                                    <div style="font-size: 0.75rem; font-weight: normal; opacity: 0.7;">Approve pending coaches</div>
+                                </div>
+                            </button>
+                            <button class="btn btn-secondary w-100 py-3 flex items-center gap-3" style="text-align: left; border-radius: var(--radius-md);" onclick="switchSection('bookings')">
+                                <i class="fa-solid fa-user-tie" style="font-size: 1.5rem;"></i>
+                                <div>
+                                    <div style="font-weight: 700;">Coach Assignment</div>
+                                    <div style="font-size: 0.75rem; font-weight: normal; opacity: 0.7;">Change coach mappings</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Bookings Management -->
+            <div id="section-bookings" class="dashboard-section d-none">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1.5rem;">Manage Bookings</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Swimmer (Owner)</th>
+                                    <th>Package Details</th>
+                                    <th>Assigned Coach</th>
+                                    <th>Payment Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 700; color: white;">{{ booking.student|title }}</div>
+                                        <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-phone"></i> {{ booking.owner_phone or '--' }}</div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ booking.package }}</strong>
+                                            {% if booking.pause_status == 'Paused' or booking.pause_status == 'PAUSED' %}
+                                                <span class="badge badge-warning">Paused</span>
+                                            {% elif booking.pause_status == 'Approval Pending' %}
+                                                <span class="badge badge-info">Approval Pending</span>
+                                            {% endif %}
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: var(--color-text-secondary);">{{ booking.start_date }} to {{ booking.end_date }}</div>
+                                        <div style="font-size: 0.8rem; color: var(--color-primary); font-weight: 600; margin-top: 0.1rem;">{{ booking.selected_days }}</div>
+                                    </td>
+                                    <td>
+                                        <form action="/admin/assign_coach/{{ booking.id }}" method="post" class="flex items-center gap-2">
+                                            <select name="trainer_username" class="form-select form-select-sm" style="border-radius: var(--radius-full); font-size: 0.85rem; padding: 0.25rem 1.5rem 0.25rem 0.75rem;">
+                                                {% for trainer in trainers %}
+                                                    {% if trainer.is_approved %}
+                                                        <option value="{{ trainer.username }}" {% if booking.trainer_username == trainer.username %}selected{% endif %}>
+                                                            {{ trainer.name|title }}
+                                                        </option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                            <button type="submit" class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" title="Change coach assignment">
+                                                <i class="fa-solid fa-save"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        {% if booking.status|lower == 'paid' %}
+                                            <span class="badge badge-success">₹{{ booking.fee }} - Paid</span>
+                                        {% elif booking.status|lower == 'pending verification' %}
+                                            <span class="badge badge-warning">₹{{ booking.fee }} - Pending</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">₹{{ booking.fee }} - Unpaid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if booking.pause_status == 'Approval Pending' %}
+                                            <div class="glass-panel flex flex-col gap-2" style="display: inline-flex; text-align: left; padding: 0.75rem; font-size: 0.8rem; max-width: 250px; margin-right: 0.5rem; vertical-align: middle; border-color: rgba(245, 158, 11, 0.3);">
+                                                <div style="font-weight: 700;">Pause Requested</div>
+                                                <div class="text-muted" style="word-break: break-word;">Reason: {{ booking.pause_reason }}</div>
+                                                <div class="flex gap-2">
+                                                    <button type="button" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; flex: 1;" onclick="approvePause('{{ booking.id }}')">Approve</button>
+                                                    <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; flex: 1; border-color: var(--color-danger); color: var(--color-danger);" onclick="showRejectInput('{{ booking.id }}')">Reject</button>
+                                                </div>
+                                                <div class="d-none" id="rejectContainer-{{ booking.id }}" style="margin-top: 0.5rem;">
+                                                    <input type="text" class="form-control" id="rejectReason-{{ booking.id }}" placeholder="Rejection reason..." style="font-size: 0.75rem; margin-bottom: 0.25rem;" required />
+                                                    <button type="button" class="btn btn-primary w-100" style="padding: 0.25rem; font-size: 0.75rem;" onclick="submitRejection('{{ booking.id }}')">Confirm</button>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <form action="/admin/delete_booking/{{ booking.id }}" method="post" class="d-inline align-middle delete-booking-form">
+                                            <button type="button" class="btn btn-outline animated-delete-btn" style="border-color: var(--color-danger); color: var(--color-danger); padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);">
+                                                <i class="fa-solid fa-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Students Directory -->
+            <div id="section-students" class="dashboard-section d-none">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1.5rem;">Students Registry</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Parent/Owner Name</th>
+                                    <th>Parent Contact</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td><div style="font-weight: 700; color: white;">{{ student.name|title }}</div></td>
+                                    <td>{{ student.owner_name|title }}</td>
+                                    <td><i class="fa-solid fa-phone text-accent"></i> {{ student.owner_phone }}</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" data-bs-toggle="modal" data-bs-target="#editStudentModal-{{ loop.index }}">Edit</button>
+                                        <form method="POST" action="{{ url_for('toggle_block_student', phone=student.owner_phone) }}" class="d-inline">
+                                            {% if student.is_blocked %}
+                                                <button type="submit" class="btn btn-outline" style="border-color: var(--color-success); color: var(--color-success); padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" onclick="return confirm('Unblock this student?')">Unblock</button>
+                                            {% else %}
+                                                <button type="submit" class="btn btn-outline" style="border-color: var(--color-danger); color: var(--color-danger); padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" onclick="return confirm('Block and suspend this student?')">Block</button>
+                                            {% endif %}
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No students currently registered.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Coaches Directory & Approvals -->
+            <div id="section-coaches" class="dashboard-section d-none">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1.5rem;">Coaches Registry & Approvals</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Coach Details</th>
+                                    <th>Credentials / Residence</th>
+                                    <th>Rating</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trainer in trainers %}
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem;">
+                                                {{ trainer.name[0]|upper }}
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 700; color: white;">{{ trainer.name|title }}</div>
+                                                <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-user"></i> {{ trainer.username }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div><strong>Phone:</strong> {{ trainer.phone or '--' }}</div>
+                                        <div><strong>Email:</strong> {{ trainer.email or '--' }}</div>
+                                        <div class="text-muted" style="font-size: 0.8rem; margin-top: 0.1rem;"><i class="fa-solid fa-location-dot"></i> {{ trainer.residence_location }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-warning" style="text-transform: none;">
+                                            <i class="fa-solid fa-star text-warning"></i> {{ trainer.rating }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if trainer.is_blocked %}
+                                            <span class="badge badge-danger">Blocked</span>
+                                        {% elif trainer.is_approved %}
+                                            <span class="badge badge-success">Approved</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">Pending Approval</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="flex gap-1 justify-end">
+                                            {% if not trainer.is_approved %}
+                                                <form action="/admin/approve_trainer/{{ trainer.username }}" method="post" class="d-inline">
+                                                    <button type="submit" class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);">
+                                                        <i class="fa-solid fa-check me-1"></i> Approve
+                                                    </button>
+                                                </form>
+                                                <form action="/admin/reject_trainer/{{ trainer.username }}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to reject this request?');">
+                                                    <button type="submit" class="btn btn-outline" style="border-color: var(--color-danger); color: var(--color-danger); padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);">
+                                                        <i class="fa-solid fa-trash me-1"></i> Reject
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                {% if trainer.username != 'asdf' %}
+                                                    <button type="button" class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" data-bs-toggle="modal" data-bs-target="#editTrainerModal-{{ loop.index }}">
+                                                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                                                    </button>
+                                                    <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" data-bs-toggle="modal" data-bs-target="#galleryTrainerModal-{{ loop.index }}">
+                                                        <i class="fa-solid fa-images me-1"></i> Gallery
+                                                    </button>
+                                                    <form action="/admin/reject_trainer/{{ trainer.username }}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to remove this coach?');">
+                                                        <button type="submit" class="btn btn-outline" style="border-color: var(--color-danger); color: var(--color-danger); padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);">
+                                                            <i class="fa-solid fa-user-minus me-1"></i> Remove
+                                                        </button>
+                                                    </form>
+                                                    <form action="/admin/toggle_block_trainer/{{ trainer.username }}" method="post" class="d-inline">
+                                                        {% if trainer.is_blocked %}
+                                                            <button type="submit" class="btn btn-outline" style="border-color: var(--color-success); color: var(--color-success); padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" onclick="return confirm('Unblock this coach?')">
+                                                                <i class="fa-solid fa-unlock me-1"></i> Unblock
+                                                            </button>
+                                                        {% else %}
+                                                            <button type="submit" class="btn btn-outline" style="border-color: var(--color-danger); color: var(--color-danger); padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" onclick="return confirm('Block and suspend this coach?')">
+                                                                <i class="fa-solid fa-ban me-1"></i> Block
+                                                            </button>
+                                                        {% endif %}
+                                                    </form>
+                                                {% else %}
+                                                    <button type="button" class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" data-bs-toggle="modal" data-bs-target="#editTrainerModal-{{ loop.index }}">
+                                                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                                                    </button>
+                                                    <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" data-bs-toggle="modal" data-bs-target="#galleryTrainerModal-{{ loop.index }}">
+                                                        <i class="fa-solid fa-images me-1"></i> Gallery
+                                                    </button>
+                                                    <button class="btn btn-outline disabled" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full); opacity: 0.5;" title="Default System Admin cannot be removed.">
+                                                        System Admin
+                                                    </button>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Sessions List -->
+            <div id="section-sessions" class="dashboard-section d-none">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1.5rem;">Scheduled Sessions</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Session Time</th>
+                                    <th>Student</th>
+                                    <th>Package</th>
+                                    <th>Coach</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in today_sessions %}
+                                <tr>
+                                    <td>
+                                        <span class="badge badge-info" style="font-weight: 700;">
+                                            {{ session.time }}
+                                        </span>
+                                    </td>
+                                    <td><strong style="color: white;">{{ session.student|title }}</strong></td>
+                                    <td>{{ session.package|title }}</td>
+                                    <td><i class="fa-solid fa-user-tie text-accent"></i> Coach {{ session.trainer_username|title }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No scheduled sessions for today.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Payments Status -->
+            <div id="section-payments" class="dashboard-section d-none">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1.5rem;">Payment Registry</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Swimmer</th>
+                                    <th>Package Detail</th>
+                                    <th>Verification Code</th>
+                                    <th>Amount</th>
+                                    <th>Payment Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 700; color: white;">{{ booking.student|title }}</div>
+                                        <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-phone"></i> {{ booking.owner_phone }}</div>
+                                    </td>
+                                    <td>{{ booking.package|title }} ({{ booking.start_date }} to {{ booking.end_date }})</td>
+                                    <td><code class="text-accent">{{ booking.payment_request or '--' }}</code></td>
+                                    <td>₹{{ booking.fee }}</td>
+                                    <td>
+                                        {% if booking.status|lower == 'paid' %}
+                                            <span class="badge badge-success">Verified Paid</span>
+                                        {% elif booking.status|lower == 'pending verification' %}
+                                            <!-- Verification form -->
+                                            <form action="/admin/verify_payment/{{ booking.id }}" method="post" style="display: inline-block;">
+                                                <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                                    <i class="fa-solid fa-circle-check"></i> Verify
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="badge badge-danger">Unpaid</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Reports & Logs -->
+            <div id="section-reports" class="dashboard-section d-none">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1.5rem;">System User Activity Audits</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Role</th>
+                                    <th>Current Login Session</th>
+                                    <th>Previous Login Session</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in activities %}
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 700; color: white;">{{ activity.user_name|title }}</div>
+                                        {% if activity.phone %}
+                                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-phone"></i> {{ activity.phone }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if activity.role == 'admin' %}
+                                            <span class="badge bg-dark text-white">Super Admin</span>
+                                        {% elif activity.role == 'trainer' %}
+                                            <span class="badge badge-info">Coach</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Swimmer</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div style="color: var(--color-primary); font-weight: 600;">
+                                            <i class="fa-solid fa-clock me-1.5"></i> {{ activity.current_login }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-muted" style="font-size: 0.85rem;">
+                                            <i class="fa-regular fa-clock me-1.5"></i> {{ activity.previous_login }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass-panel" style="padding: 1.5rem; margin-top: 1.5rem;">
+                    <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1.5rem;"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Package Pause & Resume History</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Action</th>
+                                    <th>Performed By</th>
+                                    <th>Pause Date</th>
+                                    <th>Resume Date</th>
+                                    <th>Reason</th>
+                                    <th>IP Address</th>
+                                    <th>Logged At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if audit_logs %}
+                                    {% for log in audit_logs %}
+                                    <tr>
+                                        <td><code class="text-accent" style="font-weight: 700;">{{ log.booking_id }}</code></td>
+                                        <td>
+                                            {% if log.action == 'PAUSE' %}
+                                                <span class="badge badge-warning"><i class="fa-solid fa-circle-pause me-1"></i> PAUSE</span>
+                                            {% elif log.is_auto_resume %}
+                                                <span class="badge badge-info"><i class="fa-solid fa-arrows-spin me-1"></i> AUTO RESUME</span>
+                                            {% else %}
+                                                <span class="badge badge-success"><i class="fa-solid fa-circle-play me-1"></i> RESUME</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><span style="font-weight: 600; color: white;">{{ log.performed_by|title }}</span></td>
+                                        <td>{{ log.pause_date or '--' }}</td>
+                                        <td>{{ log.resume_date or '--' }}</td>
+                                        <td><span class="text-muted" style="font-size: 0.85rem;">{{ log.reason }}</span></td>
+                                        <td><span class="text-secondary" style="font-size: 0.8rem;">{{ log.ip_address or '--' }}</span></td>
+                                        <td><span class="text-muted" style="font-size: 0.85rem;">{{ log.created_at }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4 text-muted">No pause or resume history logs found.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Settings -->
+            <div id="section-settings" class="dashboard-section d-none">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1rem;">Admin Settings</h3>
+                    <p class="text-muted" style="font-size: 0.95rem; margin-bottom: 1.5rem;">General configuration settings for SwimTrackPro will be placed here.</p>
+                    <hr style="border-color: rgba(255,255,255,0.05); margin-bottom: 1.5rem;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Academy Name</label>
+                            <input type="text" class="form-control" value="SwimTrackPro Academy" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">System Email</label>
+                            <input type="text" class="form-control" value="admin@swimtrackpro.com" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<!-- Modals Container (Outside Tables) -->
+{% for student in students %}
+<!-- Edit Student Modal -->
+<div class="modal fade" id="editStudentModal-{{ loop.index }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Edit Student</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('edit_student', phone=student.owner_phone) }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Student Name</label>
+                        <input type="text" class="form-control" name="name" value="{{ student.name }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Parent/Owner Name</label>
+                        <input type="text" class="form-control" name="owner_name" value="{{ student.owner_name }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Parent Contact</label>
+                        <input type="text" class="form-control" name="owner_phone" value="{{ student.owner_phone }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" style="padding: 0.5rem 1.25rem;" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for trainer in trainers %}
+<!-- Edit Trainer Modal -->
+<div class="modal fade" id="editTrainerModal-{{ loop.index }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Edit Coach: {{ trainer.username }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('edit_trainer', username=trainer.username) }}">
+                <div class="modal-body">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" name="name" value="{{ trainer.name }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input type="text" class="form-control" name="phone" value="{{ trainer.phone }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="{{ trainer.email }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Rating (0-5)</label>
+                            <input type="number" step="0.1" max="5" min="0" class="form-control" name="rating" value="{{ trainer.rating }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Experience</label>
+                            <input type="text" class="form-control" name="experience" value="{{ trainer.experience }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Qualification</label>
+                            <input type="text" class="form-control" name="qualification" value="{{ trainer.qualification }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Currently Working</label>
+                            <input type="text" class="form-control" name="currently_working" value="{{ trainer.currently_working }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Residence Location</label>
+                            <input type="text" class="form-control" name="residence_location" value="{{ trainer.residence_location }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" style="padding: 0.5rem 1.25rem;" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Gallery Trainer Modal -->
+<div class="modal fade" id="galleryTrainerModal-{{ loop.index }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Image Gallery: {{ trainer.username }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if trainer.photos %}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {% for photo in trainer.photos %}
+                            <div class="position-relative card" style="padding: 0; overflow: hidden; border: none;">
+                                <img src="{{ url_for('static', filename='images/Album/' ~ photo) }}" class="img-fluid" alt="Trainer Image" style="object-fit: cover; width: 100%; height: 200px;">
+                                <form action="{{ url_for('delete_trainer_image', username=trainer.username, filename=photo) }}" method="POST" class="position-absolute top-0 end-0 p-2" onsubmit="return confirm('Are you sure you want to delete this image?');">
+                                    <button type="submit" class="btn btn-primary rounded-circle shadow" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--color-danger); border: none;">
+                                        <i class="fa-solid fa-trash" style="font-size: 0.95rem;"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fa-solid fa-image fs-1 mb-3"></i>
+                        <p>No images uploaded by this coach yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" style="padding: 0.5rem 1.25rem;" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% set active_page = 'home' %}
+{% include 'components/mobile_bottom_nav.html' %}
+
+<script src="{{ url_for('static', filename='common.js') }}?v=1.1.3"></script>
+<script src="{{ url_for('static', filename='dashboard_core.js') }}?v=1.1.3"></script>
+<script src="{{ url_for('static', filename='payment_core.js') }}?v=1.1.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Tab switching controller
+    function switchSection(sectionId, clickedElement = null) {
+        document.querySelectorAll('.dashboard-section').forEach(sec => {
+            sec.classList.add('d-none');
+        });
+        const activeSection = document.getElementById('section-' + sectionId);
+        if (activeSection) {
+            activeSection.classList.remove('d-none');
+        }
+
+        document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-secondary');
+        });
+
+        let clickedLink = clickedElement || (window.event ? window.event.currentTarget : null);
+        
+        document.querySelectorAll('.mobile-nav-item').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        if (clickedLink && clickedLink.classList.contains('mobile-nav-item')) {
+            clickedLink.classList.add('active');
+            let desktopLink = document.querySelector(`.admin-tab-btn[onclick*="switchSection('${sectionId}'"]`);
+            if (desktopLink) {
+                desktopLink.classList.remove('btn-secondary');
+                desktopLink.classList.add('btn-primary');
+            }
+        } else {
+            if (!clickedLink || !clickedLink.classList.contains('admin-tab-btn')) {
+                clickedLink = document.querySelector(`.admin-tab-btn[onclick*="switchSection('${sectionId}'"]`);
+            }
+            if (clickedLink) {
+                clickedLink.classList.remove('btn-secondary');
+                clickedLink.classList.add('btn-primary');
+            }
+            let mobileLink = document.querySelector(`.mobile-nav-item[onclick*="switchSection('${sectionId}')"]`);
+            if (mobileLink) {
+                mobileLink.classList.add('active');
+            }
+        }
+
+
+
+        const titles = {
+            'dashboard': 'Dashboard',
+            'bookings': 'Bookings & Assignment',
+            'students': 'Students Directory',
+            'coaches': 'Coaches & Approvals',
+            'sessions': 'Upcoming Sessions',
+            'payments': 'Payments Status',
+            'reports': 'System Audit Logs',
+            'settings': 'Settings'
+        };
+        document.getElementById('pageTitle').textContent = titles[sectionId] || 'Dashboard';
+        sessionStorage.setItem('activeAdminSection', sectionId);
+    }
+
+    // Chart.js initialization
+    document.addEventListener('DOMContentLoaded', function () {
+        const savedSection = sessionStorage.getItem('activeAdminSection');
+        if (savedSection && document.getElementById('section-' + savedSection)) {
+            switchSection(savedSection);
+        }
+        
+        const ctx = document.getElementById('bookingsChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Bookings',
+                        data: {{ chart_data|tojson }},
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.05)',
+                        borderWidth: 3.5,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#a1a1aa' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#a1a1aa' }
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    window.approvePause = function(bookingId) {
+        const formData = new FormData();
+        formData.append('booking_id', bookingId);
+        
+        fetch('/booking/approve_pause', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Pause request approved.');
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to approve pause.');
+            }
+        })
+        .catch(err => {
+            alert('An error occurred. Please try again.');
+        });
+    };
+
+    window.showRejectInput = function(bookingId) {
+        const container = document.getElementById(`rejectContainer-${bookingId}`);
+        if (container) {
+            container.classList.toggle('d-none');
+        }
+    };
+
+    window.submitRejection = function(bookingId) {
+        const textarea = document.getElementById(`rejectReason-${bookingId}`);
+        const reason = textarea ? textarea.value.trim() : '';
+        if (!reason) {
+            alert('Rejection reason is required.');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('booking_id', bookingId);
+        formData.append('rejection_reason', reason);
+        
+        fetch('/booking/reject_pause', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Pause request rejected.');
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to reject pause.');
+            }
+        })
+        .catch(err => {
+            alert('An error occurred. Please try again.');
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.animated-delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.dataset.confirmed !== 'true') {
+                    this.dataset.confirmed = 'true';
+                    this.classList.remove('btn-outline');
+                    this.classList.add('btn-primary');
+                    this.style.background = 'var(--color-danger)';
+                    this.style.borderColor = 'var(--color-danger)';
+                    this.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Confirm Delete';
+
+                    clearTimeout(this.resetTimer);
+
+                    this.resetTimer = setTimeout(() => {
+                        if (this.dataset.confirmed === 'true' && !this.disabled) {
+                            this.dataset.confirmed = 'false';
+                            this.classList.remove('btn-primary');
+                            this.classList.add('btn-outline');
+                            this.style.background = 'none';
+                            this.style.borderColor = 'var(--color-danger)';
+                            this.style.color = 'var(--color-danger)';
+                            this.innerHTML = '<i class="fa-solid fa-trash me-1"></i>Delete';
+                        }
+                    }, 5000);
+
+                    return;
+                }
+
+                this.disabled = true;
+                clearTimeout(this.resetTimer);
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Deleting...';
+
+                const toast = document.createElement('div');
+                toast.className = 'delete-toast';
+                toast.innerText = 'Deleting booking, please wait...';
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    this.closest('form').submit();
+                }, 700);
+            });
+        });
+    });
+</script>
+{% endblock %}

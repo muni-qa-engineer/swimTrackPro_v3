@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendar - SwimTrackPro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .calendar-header-custom {
+        background: rgba(24, 24, 27, 0.8) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+    }
+    
+    /* Date Strip & Agenda Styles for Mobile */
+    .date-strip {
+        display: flex;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 4px;
+        gap: 10px;
+    }
+    
+    .date-strip::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .date-card {
+        flex: 0 0 60px;
+        height: 76px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all var(--transition-fast) ease;
+        position: relative;
+    }
+    
+    .date-card.active {
+        background: var(--gradient-primary);
+        border-color: transparent;
+        color: #fff !important;
+        box-shadow: 0 4px 12px var(--color-primary-glow);
+    }
+    
+    .date-card.active .date-num, 
+    .date-card.active .date-label {
+        color: #fff !important;
+    }
+    
+    .date-card .date-num {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: white;
+        line-height: 1.2;
+    }
+    
+    .date-card .date-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+    }
+    
+    .date-card .dot-indicator {
+        width: 6px;
+        height: 6px;
+        background-color: var(--color-primary);
+        border-radius: 50%;
+        position: absolute;
+        bottom: 8px;
+    }
+    
+    .date-card.active .dot-indicator {
+        background-color: #fff;
+    }
+    
+    .agenda-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-sm);
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: all var(--transition-fast) ease;
+    }
+    
+    .agenda-card:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(6, 182, 212, 0.2);
+    }
+    
+    .agenda-card.completed {
+        opacity: 0.5;
+    }
+    
+    .agenda-card.completed .agenda-swimmer {
+        text-decoration: line-through;
+    }
+    
+    .agenda-card.makeup {
+        border-left: 4px solid var(--color-success);
+    }
+    
+    .agenda-card.skipped {
+        border-left: 4px solid var(--color-warning);
+    }
+    
+    .agenda-card.pending {
+        border-left: 4px dashed var(--color-warning);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: var(--radius-md);
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        color: var(--color-text-secondary);
+    }
+    
+    .calendar-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr) !important;
+        gap: 8px !important;
+    }
+    
+    /* Calendar Chip overrides */
+    .calendar-booking-chip {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 6px 8px !important;
+        margin-top: 6px !important;
+        border: 1px solid rgba(6, 182, 212, 0.2) !important;
+        border-radius: var(--radius-sm) !important;
+        background: rgba(6, 182, 212, 0.08) !important;
+        color: var(--color-primary) !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        gap: 2px !important;
+    }
+    
+    .calendar-booking-name {
+        display: flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+        color: white !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    .calendar-booking-time {
+        font-size: 10px !important;
+        color: var(--color-text-secondary) !important;
+        font-weight: 500 !important;
+    }
+    
+    .completed-session {
+        opacity: 0.5 !important;
+    }
+    
+    .completed-text,
+    .completed-session .calendar-booking-name,
+    .completed-session .calendar-booking-time {
+        text-decoration: line-through !important;
+    }
+
+    /* Modal overrides */
+    .modal-content {
+        background: rgba(24, 24, 27, 0.95);
+        backdrop-filter: var(--backdrop-blur);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: white;
+    }
+    
+    .modal-header, .modal-footer {
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h2 class="font-display text-primary" style="font-size: 1.8rem; margin: 0;"><i class="fa-solid fa-calendar-days"></i> Monthly Calendar</h2>
+    </div>
+
+    <div class="glass-panel animate-slide-up" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.05);">
+        
+        <div class="calendar-header-custom d-flex justify-content-between align-items-center" style="padding: 1.25rem 1.5rem;">
+            <span class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-calendar-days text-primary fs-4"></i>
+                <span class="text-white fw-bold font-display" style="font-size: 1.1rem;">Schedule & Slots</span>
+            </span>
+
+            <input type="month" id="calendarMonthInput" class="form-control w-auto" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1); color-scheme: dark;">
+        </div>
+
+        <div style="padding: 1.5rem;">
+            <!-- Desktop Calendar Grid (shown on md+ via JS) -->
+            <div id="calendarGrid" class="calendar-grid-modern" style="display:none;"></div>
+            
+            <!-- Mobile Calendar View (shown on < md via JS) -->
+            <div id="mobileCalendarView" style="display:none;">
+                <!-- Scrollable Date Strip -->
+                <div class="date-strip-container">
+                    <div id="mobileDateStrip" class="date-strip"></div>
+                </div>
+                <!-- Day Bookings List / Agenda -->
+                <div class="agenda-container mt-4">
+                    <div id="mobileAgendaView"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Make-Up Class Calendar Modal -->
+<div class="modal fade" id="sessionOptionsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-rotate text-primary"></i> Session Options</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body" style="font-size: 0.9rem;">
+        <div class="mb-2"><strong>Swimmer:</strong> <span id="modalStudentName">-</span></div>
+        <div class="mb-2"><strong>Date:</strong> <span id="modalSessionDate">-</span></div>
+        <div class="mb-2"><strong>Package:</strong> <span id="modalPackage">-</span></div>
+        <div class="mb-2"><strong>Skip Remaining:</strong> <span id="modalSkipRemaining">Checking...</span></div>
+        <div class="mb-3"><strong>Valid Until:</strong> <span id="modalValidUntil">-</span></div>
+
+        <div class="alert alert-info py-2 mb-3" style="background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.15); color: var(--color-primary); font-size: 0.8rem;">
+          Use this dialog to skip a scheduled class and create a make-up credit.
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <form id="skipSessionForm" method="POST">
+              <button type="submit" id="skipSessionButton" class="btn btn-primary w-100" style="background: var(--color-warning); color: black; border: none;">
+                <span class="btn-text"><i class="fa-solid fa-forward-step"></i> Skip Session</span>
+              </button>
+            </form>
+          </div>
+          <div class="col-6">
+            <div id="skipUndoContainer" style="display:none;">
+              <form id="undoMakeupForm" method="POST">
+                <button type="submit" id="undoMakeupButton" class="btn btn-secondary w-100">
+                   <span class="btn-text"><i class="fa-solid fa-arrow-rotate-left"></i> Undo</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        
+        <form id="useMakeupForm" method="POST" action="{{ url_for('submit_makeup_request') }}" style="display:none;" class="mt-4">
+          <input type="hidden" name="booking_id" id="makeupBookingId">
+          <input type="hidden" name="credit_id" id="makeupCreditId">
+          <input type="hidden" name="requested_date" id="makeupRequestedDate">
+
+          <div class="form-group">
+            <label for="makeupDatePicker" class="form-label">Select Replacement Date</label>
+            <input type="date" id="makeupDatePicker" class="form-control" required style="background: rgba(0,0,0,0.4); color: white; color-scheme: dark;">
+            <small class="text-muted d-block mt-1">
+              Only valid dates within the allowed make-up period can be selected.
+            </small>
+          </div>
+
+          <div class="row g-2 mt-3">
+            <div class="col-6">
+              <button type="submit" id="useMakeupButton" class="btn btn-primary w-100">
+                 <span class="btn-text"><i class="fa-solid fa-rotate"></i> Use Available</span>
+              </button>
+            </div>
+            <div class="col-6">
+              <div id="makeupUndoContainer" style="display:none;">
+                <button type="button" id="makeupUndoProxyButton" class="btn btn-secondary w-100" onclick="document.getElementById('undoMakeupForm').requestSubmit();">
+                   <i class="fa-solid fa-arrow-rotate-left"></i> Undo
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <div id="adminApprovalActions" style="display:none;" class="mt-4">
+          <div class="row g-2">
+            <div class="col-6">
+              <form id="approveMakeupForm" method="POST">
+                <button type="submit" id="approveMakeupButton" class="btn btn-primary w-100">
+                  <span class="btn-text"><i class="fa-solid fa-circle-check"></i> Approve</span>
+                </button>
+              </form>
+            </div>
+            <div class="col-6">
+              <form id="rejectMakeupForm" method="POST">
+                <button type="submit" id="rejectMakeupButton" class="btn btn-outline w-100" style="border-color: var(--color-danger); color: var(--color-danger);">
+                  <span class="btn-text"><i class="fa-solid fa-circle-xmark"></i> Reject</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% set active_page = 'calendar' %}
+{% include 'components/mobile_bottom_nav.html' %}
+
+{% include 'components/session_timeout.html' %}
+
+<script>
+    window.bookingsData = {{ bookings|tojson }};
+    window.currentUserRole = "{{ role }}";
+    window.reopenBookingId = "{{ request.args.get('booking', '') }}";
+    window.reopenSessionDate = "{{ request.args.get('date', '') }}";
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='calendar.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    function enableLoading(formId, buttonId, loadingText) {
+        const form = document.getElementById(formId);
+        const button = document.getElementById(buttonId);
+
+        if (!form || !button) return;
+
+        form.addEventListener('submit', () => {
+            button.disabled = true;
+            button.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                ${loadingText}
+            `;
+        });
+    }
+
+    enableLoading('skipSessionForm', 'skipSessionButton', 'Processing...');
+    enableLoading('undoMakeupForm', 'undoMakeupButton', 'Undoing...');
+    enableLoading('useMakeupForm', 'useMakeupButton', 'Submitting...');
+    enableLoading('approveMakeupForm', 'approveMakeupButton', 'Approving...');
+    enableLoading('rejectMakeupForm', 'rejectMakeupButton', 'Rejecting...');
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

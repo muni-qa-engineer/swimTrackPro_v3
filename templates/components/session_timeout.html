@@ -1,0 +1,37 @@
+
+
+<!-- V0033.5.0 - Global Inactivity Logout Warning -->
+<div id="inactiveLogoutToast"
+     style="display:none;
+            position:fixed;
+            top:20px;
+            left:50%;
+            transform:translateX(-50%);
+            z-index:9999;
+            min-width:320px;">
+
+    <div class="card shadow border-0">
+        <div class="card-body text-center">
+
+            <h5 class="mb-3"><i class="fa-solid fa-triangle-exclamation"></i> Session Expiring</h5>
+
+            <p class="mb-3">
+                You will be logged out in
+                <strong><span id="logoutCountdown">20</span></strong>
+                seconds.
+            </p>
+
+            <button type="button"
+                    id="stayLoggedInBtn"
+                    class="btn btn-primary btn-sm me-2">
+                Stay Logged In
+            </button>
+
+            <a href="/logout"
+               class="btn btn-danger btn-sm">
+                Logout Now
+            </a>
+
+        </div>
+    </div>
+</div>

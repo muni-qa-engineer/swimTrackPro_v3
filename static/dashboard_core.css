@@ -1,0 +1,661 @@
+  transform: translateY(-1px);
+}
+
+.badge {
+  font-weight: 500;
+}
+
+.swimmer-list-container {
+  max-height: 470px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.swimmer-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.swimmer-list-container::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.4);
+  border-radius: 10px;
+}
+
+.calendar-booking {
+  font-size: 11px;
+  padding: 5px 7px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: #dbeafe;
+  color: #1e3a8a;
+  font-weight: 500;
+  border: 1px solid #bfdbfe;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.past-session {
+  opacity: 0.45;
+  filter: grayscale(35%);
+  text-decoration: line-through;
+}
+
+/* Completed booking overlay */
+.booking-card {
+  position: relative;
+}
+
+.completed-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #198754;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 400;
+  padding: 0.5rem 2rem;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  z-index: 20;
+  min-width: 32%;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  letter-spacing: 0.5px;
+}
+
+/* Slightly smaller overlay on mobile */
+@media (max-width: 768px) {
+  .completed-overlay {
+    font-size: 1.5rem;
+    min-width: 50%;
+    padding: 0.45rem 1.5rem;
+    border-radius: 14px;
+    border-width: 3px;
+  }
+}
+
+/* ======================================
+   V0032.0.10.1 - Calendar Grid Redesign
+   Fixed 7-column responsive calendar
+   ====================================== */
+
+#calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+
+/* V0038.10.1 Mini Calendar */
+
+.calendar-header{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  text-align:center;
+  font-weight:600;
+  margin-bottom:12px;
+  color:#6c757d;
+}
+
+.calendar-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:10px;
+}
+
+.calendar-day{
+  width:36px;
+  height:36px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  font-weight:500;
+}
+
+.calendar-day.today{
+  background:#0d6efd;
+  color:#fff;
+}
+
+.calendar-day.booked{
+  background:#20c997;
+  color:#fff;
+}
+
+.calendar-day.makeup{
+  background:#fd7e14;
+  color:#fff;
+}
+
+.legend-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:5px;
+}
+
+
+/* Premium Card Design (Soft Glass & Thin Borders) */
+.card {
+  border-radius: 20px !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04), 
+              0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              box-shadow 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 
+              0 2px 6px rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+.card-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  padding: 16px 20px !important;
+  font-size: 17px !important;
+  color: #1e293b;
+}
+
+
+/* Analytics Cards Custom Gradients & Internal Shine */
+.analytics-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.analytics-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 30%,
+    rgba(255, 255, 255, 0) 60%
+  );
+  transform: rotate(45deg);
+  transition: transform 0.5s ease;
+}
+
+.card:hover .analytics-card::after {
+  transform: translate(25%, 25%) rotate(45deg);
+}
+
+
+/* Hero Banner Enhancements */
+.hero-banner {
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 20px 40px -10px rgba(13, 110, 253, 0.22) !important;
+}
+
+.hero-banner h4 {
+  font-size: 24px;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.hero-subtitle {
+  font-size: 15px !important;
+  opacity: 0.95;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.notification-badge {
+  background: rgba(220, 53, 69, 0.9) !important;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.2);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+
+/* Quick Action Tiles Overhaul */
+.quick-tile {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  border-radius: 22px !important;
+  padding: 20px 10px !important;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.quick-tile:hover {
+  transform: translateY(-6px) scale(1.03) !important;
+  box-shadow: 0 16px 32px -10px rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(13, 110, 253, 0.12) !important;
+  background: #fafbff !important;
+}
+
+.quick-icon {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 16px !important;
+  font-size: 26px !important;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.quick-tile:hover .quick-icon {
+  transform: scale(1.12) rotate(4deg);
+}
+
+
+/* Progress Section */
+.progress-circle {
+  transition: transform 0.3s ease;
+  box-shadow: 0 6px 20px -5px rgba(13, 110, 253, 0.15);
+}
+
+.progress-circle:hover {
+  transform: scale(1.06);
+}
+
+
+/* Swimmer Card Row Custom Styling */
+.swimmer-card-row {
+  border: 1px solid rgba(0, 0, 0, 0.03) !important;
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  margin-bottom: 10px !important;
+  padding: 12px 14px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.swimmer-card-row:hover {
+  transform: translateX(5px) !important;
+  background: rgba(13, 110, 253, 0.02) !important;
+  border-color: rgba(13, 110, 253, 0.1) !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important;
+}
+
+.swimmer-avatar {
+  background: linear-gradient(135deg, #0d6efd, #3b82f6) !important;
+  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.15);
+  font-weight: 600;
+  transition: transform 0.3s ease;
+}
+
+.swimmer-card-row:hover .swimmer-avatar {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+
+/* Mini Calendar Redesign */
+.mini-calendar {
+  padding: 5px;
+}
+
+.calendar-header span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.calendar-grid {
+  gap: 8px !important;
+}
+
+.calendar-day {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 13px;
+  color: #4b5563;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.calendar-day:not(.empty):hover {
+  background: rgba(13, 110, 253, 0.08);
+  color: #0d6efd;
+}
+
+.calendar-day.empty {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.calendar-day.today {
+  background: #eff6ff !important;
+  color: #0d6efd !important;
+  border: 1.5px solid #0d6efd !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
+}
+
+.calendar-day.booked {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+  border-radius: 50%;
+}
+
+.calendar-day.makeup {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);
+  border-radius: 50%;
+}
+
+
+/* Announcement Board Style refinements */
+.announcement-row {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+  padding: 12px 6px !important;
+  transition: background-color 0.25s ease;
+  border-radius: 8px;
+}
+
+.announcement-row:hover {
+  background-color: rgba(13, 110, 253, 0.02);
+}
+
+.announcement-dot {
+  background: linear-gradient(135deg, #0d6efd, #60a5fa) !important;
+  box-shadow: 0 0 8px rgba(13, 110, 253, 0.4);
+}
+
+.announcement-text {
+  color: #475569;
+  font-weight: 400;
+}
+
+
+/* Sub-page Premium Refinements */
+
+
+
+/* Premium Mesh Background */
+.premium-mesh-bg {
+    background-color: #f0f4f8 !important;
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+    background-image: 
+      radial-gradient(at 40% 20%, hsla(210,100%,93%,1) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, hsla(189,100%,96%,1) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, hsla(355,100%,93%,1) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, hsla(340,100%,96%,1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(22,100%,92%,1) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, hsla(242,100%,96%,1) 0px, transparent 50%),
+      radial-gradient(at 0% 0%, hsla(343,100%,96%,1) 0px, transparent 50%);
+    background-attachment: fixed;
+    animation: bgGradientFade 15s ease infinite alternate;
+}
+
+@keyframes bgGradientFade {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* Glassmorphism Upgrades */
+.premium-glass-card {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(20px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.premium-glass-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Premium Gradient Utility Classes */
+.premium-gradient-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25) !important;
+}
+.premium-gradient-success {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%) !important;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25) !important;
+}
+.premium-gradient-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25) !important;
+}
+.premium-gradient-purple {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%) !important;
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25) !important;
+}
+
+/* Fade-in-up animation */
+.fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Bottom Navigation Styles */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  width: auto;
+  max-width: calc(100% - 16px);
+  z-index: 1080;
+  background: rgba(10, 14, 22, 0.92) !important;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 18px 28px -18px rgba(0, 0, 0, 0.35) !important;
+  border-radius: 22px !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 72px;
+  padding: 0.8rem 12px;
+  box-sizing: border-box;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.mobile-nav-item {
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: #cbd5e1;
+  font-size: 11px;
+  line-height: 1.15;
+  cursor: pointer;
+  padding: 8px 0;
+  border-radius: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.mobile-nav-item div,
+.mobile-nav-item i {
+  font-size: 20px;
+  transition: transform 0.2s ease;
+  display: block;
+}
+
+.mobile-nav-item small {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-top: 0.15rem;
+  color: inherit;
+}
+
+.mobile-nav-item.active {
+  color: #38bdf8 !important;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.12) !important;
+}
+
+.mobile-nav-item.active div,
+.mobile-nav-item.active i {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.mobile-nav-item:hover {
+  color: #f8fafc;
+}
+
+.mobile-nav-item:focus,
+.mobile-nav-item:active {
+  outline: none;
+}
+
+@media (max-width: 991.98px) {
+  body {
+    padding-bottom: 104px !important;
+  }
+  .mobile-bottom-nav {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0 !important;
+    padding: 0.55rem 12px;
+  }
+}
+
+/* Profile Menu Button */
+.btn-profile-menu {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border-radius: 50px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+}
+
+.btn-profile-menu:hover, .btn-profile-menu:focus {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1) !important;
+}
+
+.btn-profile-menu:active {
+  transform: scale(0.98) !important;
+}
+
+.profile-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+.profile-name {
+  font-size: 14px;
+  font-weight: 550;
+}
+
+.profile-caret {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: transform 0.3s ease;
+}
+
+.btn-profile-menu[aria-expanded="true"] .profile-caret {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu Glassmorphic Card */
+.premium-dropdown-menu {
+  background: rgba(33, 37, 41, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.35) !important;
+  padding: 10px 6px !important;
+  margin-top: 10px !important;
+}
+
+.premium-dropdown-menu .dropdown-header {
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.premium-dropdown-menu .dropdown-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.premium-dropdown-menu .dropdown-item:hover {
+  background: rgba(13, 110, 253, 0.12) !important;
+  color: #3b82f6 !important;
+  transform: translateX(4px) !important;
+}
+
+.premium-dropdown-menu .dropdown-item:active {
+  background: rgba(13, 110, 253, 0.2) !important;
+}
+
+.premium-dropdown-menu hr {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  margin: 8px 0 !important;
+}
+
+/* Fix mobile bottom nav overlap */
+@media (max-width: 991.98px) {
+  .main-content-panel {
+    padding-bottom: 96px !important;
+  }
+}
+

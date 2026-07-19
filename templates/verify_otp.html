@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Verify OTP - SwimTrackPro{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 80vh; align-items: center;">
+    <div class="container d-flex justify-content-center align-items-center">
+        <div class="col-12 col-md-8 col-lg-5">
+            <div class="glass-panel p-4 p-md-5 animate-slide-up">
+                <div class="text-center mb-4">
+                    <div class="profile-avatar-container" style="width:60px; height:60px; font-size:24px; background: rgba(6, 182, 212, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(6, 182, 212, 0.2); margin-bottom: 1rem;">
+                        <i class="fa-solid fa-key text-primary"></i>
+                    </div>
+                    <h3 class="font-display text-white mb-2" style="font-size: 1.5rem;">Reset Password</h3>
+                    <p class="text-muted small">Enter the 6-digit OTP sent to <strong>{{ email }}</strong> and set your new password.</p>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form action="{{ url_for('verify_otp') }}" method="POST">
+                    <input type="hidden" name="email" value="{{ email }}">
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">6-Digit OTP</label>
+                        <div style="display: flex;">
+                            <span class="btn btn-secondary" style="border-top-right-radius: 0; border-bottom-right-radius: 0; border: 1px solid rgba(255,255,255,0.1); border-right: none; padding: 0 1rem; display: flex; align-items: center; background: rgba(0,0,0,0.2);"><i class="fa-solid fa-hashtag text-muted"></i></span>
+                            <input type="text" name="otp" class="form-control" placeholder="123456" maxlength="6" pattern="\d{6}" required autofocus style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label class="form-label">New Password</label>
+                        <div style="display: flex;">
+                            <span class="btn btn-secondary" style="border-top-right-radius: 0; border-bottom-right-radius: 0; border: 1px solid rgba(255,255,255,0.1); border-right: none; padding: 0 1rem; display: flex; align-items: center; background: rgba(0,0,0,0.2);"><i class="fa-solid fa-lock text-muted"></i></span>
+                            <input type="password" id="newPassword" name="new_password" class="form-control" placeholder="Create new password" required minlength="6" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-right: none;">
+                            <button class="btn btn-secondary" type="button" onclick="togglePasswordVisibility('newPassword', this)" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border: 1px solid rgba(255,255,255,0.1); border-left: none; padding: 0 1rem;">
+                                <i class="fa-solid fa-eye text-muted"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 mb-3">
+                        Reset Password <i class="fa-solid fa-check ms-1" style="font-size: 0.85rem;"></i>
+                    </button>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('forgot_password') }}" class="text-decoration-none small text-muted">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Back or Resend OTP
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>
+{% endblock %}

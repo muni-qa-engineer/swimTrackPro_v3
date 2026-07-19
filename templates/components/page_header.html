@@ -1,0 +1,157 @@
+<style>
+/* =============================================
+   Sidebar for sub-pages (desktop only)
+   Fixed position — no wrapper div needed.
+   ============================================= */
+.sidebar-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: #0b192c;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+/* Push page content right on desktop */
+@media (min-width: 992px) {
+    body {
+        padding-left: 260px !important;
+    }
+}
+
+/* Mobile top bar */
+.subpage-mobile-nav {
+    background: #0b192c;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.subpage-mobile-nav .brand {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+}
+.subpage-mobile-nav .back-btn {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 6px 14px;
+    transition: background 0.2s;
+}
+.subpage-mobile-nav .back-btn:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+</style>
+
+<!-- ── Mobile top nav (shown only on small screens) ── -->
+{% include 'components/mobile_navbar.html' %}
+
+<!-- ── Fixed sidebar (shown only on desktop) ── -->
+<div class="sidebar-fixed d-none d-lg-flex flex-column text-white bg-dark">
+    <a href="/" class="d-flex align-items-center mb-4 me-md-auto text-white text-decoration-none px-2 mt-2">
+        <span class="fs-4 fw-bold d-flex align-items-center gap-2">
+            🏊 <span style="font-family: 'Inter', sans-serif; letter-spacing: -0.5px;">SwimTrackPro</span>
+        </span>
+    </a>
+    <hr style="opacity: 0.1; margin: 0 0 0.5rem;">
+
+    <ul class="nav nav-pills flex-column mb-auto gap-2">
+        <li class="nav-item">
+            <a href="/"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold
+                      {% if request.path == '/' %}active bg-primary text-white{% else %}text-white-50{% endif %}">
+                <i class="fa-solid fa-chart-line fs-5"></i> Dashboard
+            </a>
+        </li>
+        <li>
+            <a href="/calendar"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold
+                      {% if '/calendar' in request.path %}active bg-primary text-white{% else %}text-white-50{% endif %}">
+                <i class="fa-regular fa-calendar-days fs-5"></i> Calendar
+            </a>
+        </li>
+        {% if role != 'trainer' %}
+        <li>
+            <a href="/booking"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold
+                      {% if '/booking' in request.path %}active bg-primary text-white{% else %}text-white-50{% endif %}">
+                <i class="fa-regular fa-calendar-plus fs-5"></i> Book now
+            </a>
+        </li>
+        {% endif %}
+        <li>
+            <a href="/my-bookings"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold
+                      {% if '/my-bookings' in request.path %}active bg-primary text-white{% else %}text-white-50{% endif %}">
+                <i class="fa-solid fa-clipboard-list fs-5"></i> Bookings
+            </a>
+        </li>
+        <li>
+            <a href="/payments"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold
+                      {% if '/payments' in request.path %}active bg-primary text-white{% else %}text-white-50{% endif %}">
+                <i class="fa-solid fa-credit-card fs-5"></i> Payments
+            </a>
+        </li>
+        <li>
+            <a href="/about-trainer"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold
+                      {% if '/about-trainer' in request.path %}active bg-primary text-white{% else %}text-white-50{% endif %}">
+                <i class="fa-solid fa-user-tie fs-5"></i> {% if role == 'trainer' %}About Me{% else %}About Coach{% endif %}
+            </a>
+        </li>
+        {% if role == 'trainer' %}
+        <li>
+            <a href="/profile"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold
+                      {% if '/profile' in request.path %}active bg-primary text-white{% else %}text-white-50{% endif %}">
+                <i class="fa-solid fa-user fs-5"></i> Profile
+            </a>
+        </li>
+        {% else %}
+        <li>
+            <a href="/help"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold
+                      {% if '/help' in request.path %}active bg-primary text-white{% else %}text-white-50{% endif %}">
+                <i class="fa-solid fa-headset fs-5"></i> Help &amp; Contact
+            </a>
+        </li>
+        {% endif %}
+        <li>
+            <a href="/about-swimming"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold
+                      {% if '/about-swimming' in request.path %}active bg-primary text-white{% else %}text-white-50{% endif %}">
+                <i class="fa-solid fa-person-swimming fs-5"></i> About Swimming
+            </a>
+        </li>
+        <li class="mt-4"><hr style="opacity: 0.1;"></li>
+        <li>
+            <a href="#" onclick="showMyIdCard(); return false;"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold text-white-50">
+                <i class="fa-solid fa-id-card fs-5"></i> My ID Card
+            </a>
+        </li>
+        <li>
+            <a href="/logout"
+               class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 fw-semibold text-danger">
+                <i class="fa-solid fa-right-from-bracket fs-5"></i> Sign Out
+            </a>
+        </li>
+    </ul>
+</div>
+<!-- ── End sidebar ── -->

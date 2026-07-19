@@ -1,0 +1,78 @@
+{% set session_user = session.get('user_name') %}
+{% set session_role = session.get('role', 'guest') %}
+
+<!-- Top Navbar (Mobile only) -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3 shadow-sm sticky-top d-lg-none">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      🏊 SwimTrackPro
+    </a>
+
+    <div class="d-flex align-items-center ms-auto gap-2">
+      <div class="dropdown">
+        <button
+          class="btn btn-profile-menu d-flex align-items-center gap-2 p-1 pe-3"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          title="Profile Menu">
+          <div class="profile-avatar-circle">
+            {{ session_user[:1]|upper if session_user else 'U' }}
+          </div>
+          <span class="profile-name d-none d-sm-inline">{{ session_user|title if session_user else '' }}</span>
+          <span class="profile-caret">▼</span>
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end premium-dropdown-menu">
+          <li class="dropdown-header text-muted small pb-2 border-bottom border-secondary border-opacity-10 mb-2">
+            Logged in as<br>
+            <strong class="text-white">{{ session_user|title if session_user else '' }}</strong>
+            <span class="badge bg-secondary text-white small ms-1" style="font-size: 9px; vertical-align: middle;">{{ session_role|upper }}</span>
+          </li>
+
+          {% if session_role == 'trainer' %}
+          <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="/profile">
+              <i class="fa-solid fa-user"></i> My Profile
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="showMyIdCard(); return false;">
+              <i class="fa-solid fa-id-card"></i> My ID Card
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="/about-trainer">
+              <i class="fa-solid fa-chalkboard-user"></i> About Me
+            </a>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          {% else %}
+          <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="showMyIdCard(); return false;">
+              <i class="fa-solid fa-id-card"></i> My ID Card
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="/about-trainer">
+              <i class="fa-solid fa-chalkboard-user"></i> About Your Trainer
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="/help">
+              <i class="fa-solid fa-phone"></i> Help & Contact
+            </a>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          {% endif %}
+
+          <li>
+            <a class="dropdown-item text-danger d-flex align-items-center gap-2" href="/logout">
+              <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>

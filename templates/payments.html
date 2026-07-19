@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Payments - SwimTrackPro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .payments-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    @media (min-width: 992px) {
+        .payments-layout {
+            grid-template-columns: 1fr 2fr;
+        }
+    }
+    
+    .table-responsive {
+        background: rgba(24, 24, 27, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        backdrop-filter: var(--backdrop-blur);
+    }
+    
+    .table {
+        color: white !important;
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.08) !important;
+        color: var(--color-text-secondary) !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+    }
+    
+    .table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 1rem 0.75rem !important;
+        color: var(--color-text-secondary);
+    }
+    
+    .table tbody tr:hover td {
+        color: white;
+        background: rgba(255, 255, 255, 0.02);
+    }
+    
+    .qr-container {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h2 class="font-display text-primary" style="font-size: 1.8rem; margin: 0;"><i class="fa-solid fa-credit-card"></i> Payments</h2>
+    </div>
+
+    <div id="paymentsSection">
+        
+        <!-- Summary Cards -->
+        <div class="metrics-grid">
+            <div class="metric-card success">
+                <div class="metric-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Paid</div>
+                    <div id="paidAmountCard" style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">₹0</div>
+                </div>
+            </div>
+            
+            <div class="metric-card warning">
+                <div class="metric-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pending Verification</div>
+                    <div id="pendingAmountCard" style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem;">₹0</div>
+                </div>
+            </div>
+            
+            <div class="metric-card danger">
+                <div class="metric-icon"><i class="fa-solid fa-circle-xmark" style="color: var(--color-danger);"></i></div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Not Paid</div>
+                    <div id="notPaidAmountCard" style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-top: 0.25rem; color: var(--color-danger);">₹0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="payments-layout">
+            
+            <!-- Left Column: Payment Details & QR Code -->
+            <div class="glass-panel" style="padding: 1.5rem; height: fit-content;">
+                <h3 class="font-display mb-4" style="font-size: 1.25rem;"><i class="fa-solid fa-circle-info text-accent"></i> Payment Information</h3>
+                
+                <div class="flex flex-col gap-3" style="font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <span class="text-muted">Acc Holder:</span>
+                        <div style="font-weight: 600;">{{ account_holder_name }}</div>
+                    </div>
+                    <div>
+                        <span class="text-muted">Phone:</span>
+                        <div style="font-weight: 600;">{{ trainer_phone }}</div>
+                    </div>
+                    <div>
+                        <span class="text-muted">UPI ID:</span>
+                        <div style="font-weight: 600; color: var(--color-primary);">{{ upi_id }}</div>
+                    </div>
+                    <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem;">
+                        <span class="text-muted">Total Outstanding:</span>
+                        <div style="font-size: 1.4rem; font-weight: 800; color: #f87171;">₹{{ total_pending_amount }}</div>
+                    </div>
+                </div>
+                
+                <div class="qr-container text-center">
+                    <h4 class="font-display mb-3" style="font-size: 1rem;">Scan to Pay</h4>
+                    
+                    <a id="upiPaymentLink" href="upi://pay?pa={{ upi_id }}&pn={{ account_holder_name|urlencode }}&cu=INR&tn=SwimTrackPro%20Payment">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ ('upi://pay?pa=' ~ upi_id ~ '&pn=' ~ account_holder_name ~ '&am=' ~ total_pending_amount ~ '&cu=INR&tn=SwimTrackPro Payment')|urlencode }}" alt="UPI QR Code" style="border-radius: var(--radius-sm); margin-bottom: 1rem; width: 100%; max-width: 180px;">
+                    </a>
+                    
+                    <a id="upiPaymentBtn" class="btn btn-primary w-100 py-2.5" href="upi://pay?pa={{ upi_id }}&pn={{ account_holder_name|urlencode }}&cu=INR&tn=SwimTrackPro%20Payment">
+                        Open UPI App
+                    </a>
+                </div>
+                
+                <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.15); color: var(--color-warning);">
+                    <i class="fa-solid fa-triangle-exclamation"></i> After paying, change status to <strong>Mark as Paid</strong> in the records to request coach verification.
+                </div>
+            </div>
+            
+            <!-- Right Column: Table Records -->
+            <div class="glass-panel" style="padding: 1.5rem;">
+                <h3 class="font-display mb-4" style="font-size: 1.25rem;"><i class="fa-solid fa-receipt text-accent"></i> Payment Records</h3>
+                
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Owner</th>
+                                <th>Swimmer</th>
+                                <th>Package</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <span class="spinner-border spinner-border-sm me-2"></span> Loading payment records...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-info mt-4 mb-0" style="font-size: 0.8rem; background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.15); color: var(--color-primary);">
+                    <strong>Pending Verification:</strong> payment marked paid by Swimmer, awaiting coach confirmation.
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+
+</div>
+
+{% include 'components/session_timeout.html' %}
+
+{% set active_page = 'payments' %}
+{% include 'components/mobile_bottom_nav.html' %}
+
+<script>
+    window.bookingsData = {{ bookings|tojson }};
+    window.currentUserRole = "{{ role }}";
+    window.upiId = "{{ upi_id }}";
+    window.accountHolderName = "{{ account_holder_name }}";
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='common.js') }}"></script>
+<script src="{{ url_for('static', filename='payment_core.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof updatePaymentSummary === 'function') {
+        updatePaymentSummary();
+    }
+    if (typeof updatePaymentTable === 'function') {
+        updatePaymentTable();
+    }
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

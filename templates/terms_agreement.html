@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Coach Terms & Agreement - SwimTrackPro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .terms-content h5 {
+        color: white;
+        font-family: var(--font-display);
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .terms-content p, .terms-content li {
+        color: var(--color-text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8 animate-slide-up">
+            <div class="glass-panel" style="padding: 3rem;">
+                
+                <div class="text-center mb-5">
+                    <span style="font-size: 3rem;">🏊</span>
+                    <h2 class="font-display text-primary mt-3" style="font-size: 2rem; font-weight: 800;">SwimTrackPro Coach Agreement</h2>
+                    <p class="text-muted fw-semibold">Version 1.0 (Audit-ready & legally compliant)</p>
+                    <hr style="width: 60px; margin: 1.5rem auto; border-color: var(--color-primary); border-width: 2px;">
+                </div>
+
+                <div class="terms-content">
+                    <h5>1. Acceptance of Terms</h5>
+                    <p>By registering as a Coach on SwimTrackPro, I confirm that I have read, understood, and voluntarily agree to comply with these Terms & Agreement. I understand that these terms govern my responsibilities while using the SwimTrackPro platform.</p>
+
+                    <h5>2. Accuracy of Information</h5>
+                    <p>I certify that all personal, professional, and qualification details provided during registration are true, complete, and accurate.</p>
+                    <p>I agree to promptly update my profile if any information changes.</p>
+                    <p>Providing false, misleading, or fraudulent information may result in suspension or permanent removal from the platform.</p>
+
+                    <h5>3. Professional Conduct</h5>
+                    <p>As a SwimTrackPro Coach, I agree to:</p>
+                    <ul class="flex flex-col gap-2">
+                        <li>Conduct myself professionally at all times.</li>
+                        <li>Treat every swimmer, parent, guardian, and fellow coach with courtesy and respect.</li>
+                        <li>Maintain appropriate behaviour both inside and outside the swimming facility.</li>
+                        <li>Avoid discrimination, harassment, intimidation, or abusive behaviour of any kind.</li>
+                    </ul>
+
+                    <h5>4. Safety Responsibilities</h5>
+                    <p>I understand that swimmer safety is my highest priority. I agree to:</p>
+                    <ul class="flex flex-col gap-2">
+                        <li>Follow all applicable pool safety rules and operational guidelines.</li>
+                        <li>Ensure swimmers are trained according to their age, skill level, and physical ability.</li>
+                        <li>Never leave swimmers unattended during assigned coaching sessions.</li>
+                        <li>Immediately report unsafe pool conditions or emergencies.</li>
+                        <li>Prioritize safety over training performance whenever necessary.</li>
+                    </ul>
+
+                    <h5>5. Coaching Ethics</h5>
+                    <p>I agree to:</p>
+                    <ul class="flex flex-col gap-2">
+                        <li>Provide honest, responsible, and professional coaching.</li>
+                        <li>Promote discipline, sportsmanship, and positive behaviour.</li>
+                        <li>Avoid physical or verbal misconduct.</li>
+                        <li>Never coach while under the influence of alcohol, drugs, or any substance that may impair judgment.</li>
+                        <li>Maintain appropriate professional boundaries.</li>
+                    </ul>
+
+                    <h5>6. Attendance and Punctuality</h5>
+                    <p>I agree to:</p>
+                    <ul class="flex flex-col gap-2">
+                        <li>Arrive on time for scheduled coaching sessions.</li>
+                        <li>Notify SwimTrackPro as early as possible if I am unable to attend a scheduled session.</li>
+                        <li>Respect assigned schedules and coaching responsibilities.</li>
+                    </ul>
+
+                    <h5>7. Responsibilities Toward Swimmers</h5>
+                    <p>I agree to:</p>
+                    <ul class="flex flex-col gap-2">
+                        <li>Encourage swimmers positively.</li>
+                        <li>Respect each swimmer’s learning pace.</li>
+                        <li>Avoid unrealistic promises regarding performance or competition results.</li>
+                    </ul>
+
+                    <h5>8. Platform Usage</h5>
+                    <p>I agree to use SwimTrackPro responsibly. I shall not:</p>
+                    <ul class="flex flex-col gap-2">
+                        <li>Misuse platform features.</li>
+                        <li>Manipulate bookings, attendance, payments, or schedules.</li>
+                        <li>Access information belonging to other coaches without authorization.</li>
+                    </ul>
+
+                    <h5>9. Confidentiality</h5>
+                    <p>I understand that I may have access to confidential information. I agree to:</p>
+                    <ul class="flex flex-col gap-2">
+                        <li>Keep all personal information confidential.</li>
+                        <li>Use platform data only for authorized coaching purposes.</li>
+                    </ul>
+
+                    <h5>10. Loyalty and Conflict of Interest</h5>
+                    <p>While working through SwimTrackPro, I agree to:</p>
+                    <ul class="flex flex-col gap-2">
+                        <li>Act in the best interests of the swimmers and the platform.</li>
+                        <li>Avoid actions that intentionally harm the reputation of SwimTrackPro.</li>
+                    </ul>
+
+                    <h5>11. Equipment and Facilities</h5>
+                    <p>I agree to use pool facilities and training equipment responsibly and report damaged or unsafe equipment immediately.</p>
+
+                    <h5>12. Compliance with Laws and Policies</h5>
+                    <p>I agree to comply with all applicable local laws, swimming pool rules, child safety requirements, and SwimTrackPro operational policies.</p>
+
+                    <h5>13. Child Protection</h5>
+                    <p>I understand that many swimmers may be minors. I agree to:</p>
+                    <ul class="flex flex-col gap-2">
+                        <li>Treat every child with dignity, patience, and respect.</li>
+                        <li>Avoid any behaviour that could reasonably be considered inappropriate or unsafe.</li>
+                        <li>Provide physical assistance only when necessary for instruction or safety.</li>
+                    </ul>
+
+                    <h5>14. Media and Photographs</h5>
+                    <p>I understand that SwimTrackPro may use photographs or videos taken during coaching activities for educational, promotional, or marketing purposes where appropriate permissions have been obtained.</p>
+
+                    <h5>15. Limitation of Responsibility</h5>
+                    <p>I understand that swimming is a physical activity that carries inherent risks. While I am responsible for providing safe coaching practices, I cannot guarantee the prevention of every injury or unforeseen incident. I am expected to exercise reasonable care at all times.</p>
+
+                    <h5>16. Account Suspension or Termination</h5>
+                    <p>SwimTrackPro reserves the right to suspend or terminate my coach account if I provide false information, violate safety requirements, engage in misconduct, repeatedly fail to fulfill coaching responsibilities, or damage the reputation of SwimTrackPro.</p>
+
+                    <h5>17. Amendments</h5>
+                    <p>I understand that SwimTrackPro may update these Terms & Agreement from time to time. Continued use of the platform constitutes acceptance of the revised terms.</p>
+
+                    <hr style="border-color: rgba(255,255,255,0.05); margin: 2rem 0;">
+
+                    <h5 class="text-center font-display mt-3" style="color: var(--color-primary);">Declaration</h5>
+                    <p class="text-center" style="font-style: italic;">
+                        "I confirm that I have carefully read this Coach Terms & Agreement, understand my professional responsibilities, and agree to comply with all terms. I acknowledge that failure to comply may result in suspension or termination of my account."
+                    </p>
+                </div>
+
+                <div class="text-center mt-5">
+                    <button type="button" class="btn btn-primary px-5 py-3" onclick="window.close();">
+                        <i class="fa-solid fa-circle-check me-2"></i> Close Agreement
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

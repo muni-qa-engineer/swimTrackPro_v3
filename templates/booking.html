@@ -1,0 +1,867 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Session - SwimTrackPro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .booking-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    @media (min-width: 992px) {
+        .booking-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+    
+    .trainer-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-md);
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all var(--transition-bounce);
+    }
+    
+    .trainer-card:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(6, 182, 212, 0.3);
+    }
+    
+    .trainer-card.selected-trainer {
+        background: rgba(6, 182, 212, 0.08);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+    }
+    
+    .class-day-checkboxes {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .day-checkbox-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+        transition: all var(--transition-fast);
+    }
+    
+    .class-day:checked + .day-checkbox-label {
+        background: var(--gradient-primary);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 10px var(--color-primary-glow);
+    }
+    
+    .modal-content {
+        background: rgba(24, 24, 27, 0.95);
+        backdrop-filter: var(--backdrop-blur);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: white;
+    }
+    
+    .modal-header, .modal-footer {
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+    
+    /* Map styling overrides */
+    #mapPicker {
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h2 class="font-display text-primary" style="font-size: 1.8rem; margin: 0;">Book a Swimming Session</h2>
+    </div>
+    
+    <form action="{{ url_for('book') }}" method="POST" id="bookingForm">
+        <input type="hidden" name="active_tab" value="book_slot">
+        <input type="hidden" name="trainer_username" id="hiddenTrainerInput" required>
+        
+        <div class="booking-grid">
+            
+            <!-- Left Panel: Booking Details Form -->
+            <div class="flex flex-col gap-6">
+                
+                <div class="glass-panel animate-slide-up" style="padding: 2rem;">
+                    <h3 class="font-display mb-4" style="font-size: 1.4rem;">1. Session Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="studentSelect" class="form-label">Swimmer Name <span class="text-danger">*</span></label>
+                            <input type="text" id="studentSelect" name="student" class="form-control" list="swimmersList" placeholder="Enter swimmer name" autocomplete="name" required>
+                            <datalist id="swimmersList">
+                                {% for s in students %}
+                                    <option value="{{ s.name }}"></option>
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="emailInput" class="form-label">Email Address</label>
+                            <input type="email" id="emailInput" name="email" class="form-control" placeholder="parent@example.com - for alerts" autocomplete="email">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="packageSelect" class="form-label">Select Package <span class="text-danger">*</span></label>
+                            <select name="package" class="form-control" id="packageSelect" required style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
+                                <option value="Demo">Demo Class</option>
+                                <option value="Single">Single Session</option>
+                                <option value="Monthly">Monthly Pack</option>
+                                <option value="Custom">Custom Duration</option>
+                            </select>
+                            <div id="customPackageHint" class="text-muted" style="display:none; font-size: 0.8rem; margin-top: 0.25rem;">
+                                <i class="fa-solid fa-circle-info"></i> Custom package supports a maximum duration of 60 days.
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="startDateInput" class="form-label">Start Date <span class="text-danger">*</span></label>
+                            <input type="date" id="startDateInput" name="date" class="form-control" required style="background-color: rgba(0,0,0,0.4); color-scheme: dark;">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="timeSelect" class="form-label">Preferred Time <span class="text-danger">*</span></label>
+                            <select name="time" id="timeSelect" class="form-control" required style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="endDateContainer" style="display:none;">
+                            <label for="endDateInput" class="form-label">End Date</label>
+                            <input type="date" id="endDateInput" name="end_date" class="form-control" style="background-color: rgba(0,0,0,0.4); color-scheme: dark;">
+                        </div>
+                    </div>
+                    
+                    <!-- Day Picker -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            Select Class Days
+                            <span id="monthlyPackageHint" class="text-muted small ms-2" style="display:none;">(Monthly: Choose 2 or 3 days/week)</span>
+                            <span id="singleDemoHint" class="text-muted small ms-2" style="display:none;">(Picked automatically based on start date)</span>
+                            <span id="customDaysHint" class="text-muted small ms-2" style="display:none;">(Max 5 class days per week)</span>
+                        </label>
+                        
+                        <div class="class-day-checkboxes mt-2">
+                            {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                            <div>
+                                <input class="class-day d-none" type="checkbox" value="{{ day }}" id="{{ day|lower }}">
+                                <label class="day-checkbox-label" for="{{ day|lower }}">{{ day[:3] }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="selected_days" id="selectedDaysInput">
+                        
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-md); margin-top: 1rem;">
+                            <div class="text-muted" style="font-size: 0.75rem;">Selected Days</div>
+                            <div id="selectedDaysPreview" style="font-weight: 700; color: var(--color-primary); margin-top: 0.25rem;">No days selected</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-panel animate-slide-up" style="padding: 2rem;">
+                    <h3 class="font-display mb-4" style="font-size: 1.4rem;">2. Pool Location</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="form-group">
+                            <label class="form-label">Area / Locality <span class="text-danger">*</span></label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="button" id="locationPickerBtn" class="btn btn-outline" style="border-radius: var(--radius-sm); border-color: rgba(255,255,255,0.1); color: var(--color-primary);" title="Pick location on map">
+                                    <i class="fa-solid fa-map-location-dot"></i>
+                                </button>
+                                <input type="text" id="areaInput" list="locationSuggestions" class="form-control" placeholder="Enter locality" required style="flex: 1;">
+                            </div>
+                            <datalist id="locationSuggestions">
+                                {% for location in location_suggestions %}
+                                    <option value="{{ location }}"></option>
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="form-group">
+                                <label class="form-label">State <span class="text-danger">*</span></label>
+                                <select id="stateSelect" class="form-control" required style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
+                                    <option value="" disabled selected>State</option>
+                                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                    <option value="Telangana">Telangana</option>
+                                    <option value="Karnataka">Karnataka</option>
+                                    <option value="Tamil Nadu">Tamil Nadu</option>
+                                    <option value="Maharashtra">Maharashtra</option>
+                                    <option value="Kerala">Kerala</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Goa">Goa</option>
+                                    <option value="Gujarat">Gujarat</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Pincode <span class="text-danger">*</span></label>
+                                <input type="text" id="pincodeInput" class="form-control" placeholder="6 digits" pattern="^[1-9][0-9]{5}$" maxlength="6" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden fields for Leaflet coords -->
+                    <input type="hidden" name="location" id="locationInput" required>
+                    <input type="hidden" name="latitude" id="latitudeInput">
+                    <input type="hidden" name="longitude" id="longitudeInput">
+                    
+                    <div id="locationConflictWarning" class="glass-panel" style="display:none; padding: 1rem; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); color: #f87171; font-size: 0.9rem;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Selected time slot is already booked at another location. Please choose a different slot or location.
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="personsInput" class="form-label">Number of Persons</label>
+                            <input type="number" id="personsInput" name="persons" class="form-control" min="1" max="5" value="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="feeInput" class="form-label">Calculated Fee</label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--color-primary);">₹</span>
+                                <input type="number" id="feeInput" name="fee" class="form-control" value="750" readonly style="padding-left: 2rem; font-weight: 700; font-size: 1.2rem; color: white !important;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Buttons -->
+                <div class="glass-panel" style="padding: 1.5rem; display: flex; gap: 1rem;">
+                    <button type="reset" id="cancelBookingBtn" class="btn btn-secondary w-50 py-3">Cancel</button>
+                    <button id="confirmBookingBtn" type="submit" class="btn btn-primary w-50 py-3" disabled>
+                        <span id="confirmBookingSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span id="confirmBookingText">Proceed to Pay</span>
+                    </button>
+                </div>
+                
+            </div>
+            
+            <!-- Right Panel: Active Coaches Selection -->
+            <div class="glass-panel animate-slide-up" style="padding: 1.5rem; height: fit-content;">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-display" style="font-size: 1.25rem; margin: 0;">3. Select Coach</h3>
+                    <span class="badge badge-success" id="coachesCount">{{ trainers|length }}</span>
+                </div>
+                
+                <!-- Filter Box -->
+                <div class="glass-panel mb-4" id="trainerFilterBox" style="padding: 1rem; background: rgba(0, 0, 0, 0.2);">
+                    <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-filter text-primary me-1"></i> FILTER & SORT</div>
+                    <div class="flex flex-col gap-2" style="font-size: 0.85rem; color: var(--color-text-secondary);">
+                        <div class="flex items-center gap-2">
+                            <input class="filter-checkbox" type="checkbox" id="sortAZCheckbox" style="accent-color: var(--color-primary);">
+                            <label for="sortAZCheckbox">Sort A - Z</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input class="filter-checkbox" type="checkbox" id="sortRatingCheckbox" checked style="accent-color: var(--color-primary);">
+                            <label for="sortRatingCheckbox">Sort by Rating (High - Low)</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input class="filter-checkbox" type="checkbox" id="nearMeCheckbox" style="accent-color: var(--color-primary);">
+                            <label for="nearMeCheckbox">Near my location</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Trainer List -->
+                <div id="trainerListContainer" class="flex flex-col gap-3" style="max-height: 480px; overflow-y: auto;">
+                    {% for t in trainers %}
+                    <div class="trainer-card" id="trainer-card-{{ t.username }}" data-username="{{ t.username }}" data-name="{{ t.name|lower }}" data-rating="{{ t.rating }}" data-location="{{ t.residence_location|lower }}">
+                        <div class="profile-header-notice text-primary small fw-bold mb-2 d-none" id="profile-notice-{{ t.username }}" style="font-size: 0.8rem;">
+                            <i class="fa-solid fa-user"></i> Coach Profile Details
+                        </div>
+                        
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" class="trainer-select-checkbox" data-username="{{ t.username }}" id="checkbox-{{ t.username }}" style="accent-color: var(--color-primary); width: 16px; height: 16px;" onclick="event.stopPropagation(); toggleTrainerSelection('{{ t.username }}');">
+                                <span style="font-weight: 700; font-size: 0.95rem;">{{ t.name|title }}</span>
+                            </div>
+                            <span class="badge badge-warning" style="text-transform: none; font-size: 0.75rem;"><i class="fa-solid fa-star text-warning"></i> {{ t.rating }}</span>
+                        </div>
+                        
+                        <div class="text-muted mt-2" style="font-size: 0.8rem; line-height: 1.4;">
+                            <div><strong>Exp:</strong> {{ t.experience }}</div>
+                            <div><strong>Qualifications:</strong> {{ t.qualification }}</div>
+                            <div><strong>Works:</strong> {{ t.currently_working }}</div>
+                        </div>
+                        
+                        <div class="text-secondary mt-2 pt-2" style="font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="fa-solid fa-location-dot"></i> Resides: <strong>{{ t.residence_location }}</strong>
+                        </div>
+                        
+                        <div class="flex justify-end mt-2" id="view-profile-btn-container-{{ t.username }}">
+                            <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: var(--radius-sm);" onclick="event.stopPropagation(); viewTrainerProfile('{{ t.username }}');">
+                                View Profile
+                            </button>
+                        </div>
+                        
+                        <!-- Profile Expansion Details -->
+                        <div class="profile-details-more d-none mt-3 pt-3" id="profile-details-more-{{ t.username }}" style="border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                            <div><strong>Mobile:</strong> {{ t.phone }}</div>
+                            <div><strong>Email:</strong> {{ t.email }}</div>
+                            <div><strong>WhatsApp:</strong> {{ t.whatsapp }}</div>
+                        </div>
+                        
+                        <div class="profile-actions d-none mt-3 flex gap-2" id="profile-actions-{{ t.username }}">
+                            <button type="button" class="btn btn-secondary w-50" style="padding: 0.4rem; font-size: 0.8rem;" onclick="event.stopPropagation(); cancelTrainerProfile();">Cancel</button>
+                            <button type="button" class="btn btn-primary w-50" style="padding: 0.4rem; font-size: 0.8rem;" onclick="event.stopPropagation(); selectTrainerProfile('{{ t.username }}');">Select</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="text-danger mt-3 d-none text-center" id="trainerSelectionError" style="font-size: 0.8rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Please select a coach to continue.
+                </div>
+            </div>
+            
+        </div>
+    </form>
+    
+</div>
+
+<!-- Map Picker Modal -->
+<div class="modal fade" id="mapPickerModal" tabindex="-1" aria-labelledby="mapPickerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="mapPickerModalLabel"><i class="fa-solid fa-map text-primary"></i> Choose Location</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <button type="button" id="modalCurrentLocationBtn" class="btn btn-secondary py-3 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-location-crosshairs"></i> Use Current Location
+            </button>
+            <button type="button" id="modalChooseOnMapBtn" class="btn btn-primary py-3 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-map-location-dot"></i> Choose on Map
+            </button>
+        </div>
+        <div id="mapPickerContainer" style="display:none;">
+            <div id="mapPicker" style="height:380px; width: 100%;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="useSelectedLocationBtn" class="btn btn-primary">Use Selected Location</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% set active_page = 'book' %}
+{% include 'components/mobile_bottom_nav.html' %}
+
+{% include 'components/session_timeout.html' %}
+
+<script>
+    window.bookingsData = {{ bookings|tojson|safe }};
+    window.allBookingsData = {{ all_bookings|tojson|safe }};
+</script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Add standard booking controllers -->
+<script src="{{ url_for('static', filename='common.js') }}"></script>
+<script src="{{ url_for('static', filename='booking.js') }}"></script>
+<script>
+    // Copy filters, details visibility controllers
+    document.addEventListener('DOMContentLoaded', function() {
+        const packageSelect = document.getElementById('packageSelect');
+        const startDateInput = document.querySelector('input[name="date"]');
+        const monthlyPackageHint = document.getElementById('monthlyPackageHint');
+        const singleDemoHint = document.getElementById('singleDemoHint');
+
+        function toggleMonthlyHint() {
+            if (!packageSelect || !monthlyPackageHint) return;
+            monthlyPackageHint.style.display = packageSelect.value === 'Monthly' ? 'inline' : 'none';
+            if (singleDemoHint) {
+                const customPackageHint = document.getElementById('customPackageHint');
+                const customDaysHint = document.getElementById('customDaysHint');
+                singleDemoHint.style.display = (packageSelect.value === 'Demo' || packageSelect.value === 'Single') ? 'inline' : 'none';
+                if (customPackageHint) customPackageHint.style.display = packageSelect.value === 'Custom' ? 'block' : 'none';
+                if (customDaysHint) customDaysHint.style.display = packageSelect.value === 'Custom' ? 'inline' : 'none';
+            }
+        }
+
+        function updateDateRestrictions() {
+            if (!startDateInput || !packageSelect) return;
+            function toLocalDateString(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            const today = new Date();
+            const todayStr = toLocalDateString(today);
+            const maxDate = new Date();
+            maxDate.setDate(maxDate.getDate() + 10);
+            const maxDateStr = toLocalDateString(maxDate);
+            if (packageSelect.value === 'Demo' || packageSelect.value === 'Single') {
+                startDateInput.min = todayStr;
+                startDateInput.max = maxDateStr;
+            } else {
+                startDateInput.min = todayStr;
+                startDateInput.removeAttribute('max');
+            }
+        }
+
+        toggleMonthlyHint();
+        updateDateRestrictions();
+
+        packageSelect.addEventListener('change', function() {
+            toggleMonthlyHint();
+            updateDateRestrictions();
+        });
+    });
+</script>
+<script>
+    // Copy leaflet logic mapping and geocoding controls
+    document.addEventListener('DOMContentLoaded', function() {
+        const locationPickerBtn = document.getElementById('locationPickerBtn');
+        const modalCurrentLocationBtn = document.getElementById('modalCurrentLocationBtn');
+        const modalChooseOnMapBtn = document.getElementById('modalChooseOnMapBtn');
+        const mapPickerContainer = document.getElementById('mapPickerContainer');
+        const locationInput = document.querySelector('input[name="location"]');
+        const latitudeInput = document.getElementById('latitudeInput');
+        const longitudeInput = document.getElementById('longitudeInput');
+        const areaInput = document.getElementById('areaInput');
+        const stateSelect = document.getElementById('stateSelect');
+        const pincodeInput = document.getElementById('pincodeInput');
+
+        async function reverseGeocode(lat, lng) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+                const data = await response.json();
+                const displayName = data.display_name || '';
+                const addressParts = displayName.split(',').map(part => part.trim());
+                
+                let pincode = '';
+                let pincodeIndex = -1;
+                for (let i = addressParts.length - 1; i >= 0; i--) {
+                    if (/^[1-9][0-9]{5}$/.test(addressParts[i])) {
+                        pincode = addressParts[i];
+                        pincodeIndex = i;
+                        break;
+                    }
+                }
+                
+                let stateName = '';
+                let stateIndex = -1;
+                if (pincodeIndex !== -1) {
+                    stateName = addressParts[pincodeIndex - 1] || '';
+                    stateIndex = pincodeIndex - 1;
+                } else {
+                    if (addressParts.length >= 3) {
+                        stateName = addressParts[addressParts.length - 2] || '';
+                        stateIndex = addressParts.length - 2;
+                    }
+                }
+                
+                let areaParts = [];
+                let limit = (stateIndex !== -1) ? stateIndex : addressParts.length;
+                for (let i = 0; i < limit; i++) {
+                    areaParts.push(addressParts[i]);
+                }
+                const area = areaParts.join(', ');
+                
+                return {
+                    area: area || displayName,
+                    state: stateName,
+                    pincode: pincode
+                };
+            } catch (error) {
+                console.error('Reverse geocoding failed:', error);
+                return { area: `${lat}, ${lng}`, state: '', pincode: '' };
+            }
+        }
+
+        function updateFullLocation() {
+            const area = (areaInput.value || '').trim();
+            const state = (stateSelect.value || '').trim();
+            const pincode = (pincodeInput.value || '').trim();
+            
+            let full = '';
+            if (area) full += area;
+            if (state) full += (full ? ', ' : '') + state;
+            if (pincode) full += (full ? ' - ' : '') + pincode;
+            
+            if (locationInput) {
+                locationInput.value = full;
+                const event = new Event('input', { bubbles: true });
+                locationInput.dispatchEvent(event);
+            }
+        }
+
+        function setSelectedState(stateName) {
+            if (!stateSelect || !stateName) return;
+            let normalized = stateName.toLowerCase().trim();
+            const stateMappings = {
+                'ఆంధ్ర': 'andhra pradesh', 'ప్రదేశ్': 'andhra pradesh',
+                'తెలంగాణ': 'telangana', 'తెలంగాణా': 'telangana',
+                'కర్ణాటక': 'karnataka', 'మహారాష్ట్ర': 'maharashtra',
+                'తమిళ': 'tamil nadu', 'నాడు': 'tamil nadu',
+                'కేరళ': 'kerala', 'దిల్లీ': 'delhi', 'ఢిల్లీ': 'delhi',
+                'గోవా': 'goa', 'గుజరాత్': 'gujarat'
+            };
+            for (const [key, val] of Object.entries(stateMappings)) {
+                if (normalized.includes(key)) { normalized = val; break; }
+            }
+            for (let i = 0; i < stateSelect.options.length; i++) {
+                const optionVal = stateSelect.options[i].value.toLowerCase().trim();
+                if (optionVal && (normalized.includes(optionVal) || optionVal.includes(normalized))) {
+                    stateSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (areaInput) areaInput.addEventListener('input', updateFullLocation);
+        if (stateSelect) stateSelect.addEventListener('change', updateFullLocation);
+        if (pincodeInput) pincodeInput.addEventListener('input', updateFullLocation);
+
+        let map;
+        let selectedLat = null;
+        let selectedLng = null;
+        let selectedMarker = null;
+        let currentLat = null;
+        let currentLng = null;
+
+        if (locationPickerBtn) {
+            locationPickerBtn.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('mapPickerModal'));
+                mapPickerContainer.style.display = 'none';
+                modal.show();
+            });
+        }
+
+        let userLocationMarker = null;
+
+        if (modalChooseOnMapBtn) {
+            modalChooseOnMapBtn.addEventListener('click', function() {
+                mapPickerContainer.style.display = 'block';
+                const mapPickerEl = document.getElementById('mapPicker');
+                
+                function initMapWithCoords(lat, lng, isCurrentLocation = false) {
+                    if (!map) {
+                        map = L.map('mapPicker').setView([lat, lng], 15);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap contributors'
+                        }).addTo(map);
+
+                        map.on('click', function(e) {
+                            selectedLat = e.latlng.lat.toFixed(6);
+                            selectedLng = e.latlng.lng.toFixed(6);
+                            if (selectedMarker) map.removeLayer(selectedMarker);
+                            selectedMarker = L.marker(e.latlng).addTo(map);
+                        });
+                    } else {
+                        map.invalidateSize();
+                        map.setView([lat, lng], 15);
+                    }
+
+                    if (isCurrentLocation) {
+                        if (userLocationMarker) map.removeLayer(userLocationMarker);
+                        userLocationMarker = L.circleMarker([lat, lng], {
+                            radius: 9, fillColor: '#06b6d4', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.8
+                        }).addTo(map);
+
+                        selectedLat = parseFloat(lat).toFixed(6);
+                        selectedLng = parseFloat(lng).toFixed(6);
+                        if (selectedMarker) map.removeLayer(selectedMarker);
+                        selectedMarker = L.marker([lat, lng]).addTo(map);
+                    }
+                }
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            currentLat = position.coords.latitude;
+                            currentLng = position.coords.longitude;
+                            setTimeout(() => initMapWithCoords(currentLat, currentLng, true), 300);
+                        },
+                        function(error) {
+                            const defaultLat = currentLat || 17.4435;
+                            const defaultLng = currentLng || 78.3772;
+                            setTimeout(() => initMapWithCoords(defaultLat, defaultLng, false), 300);
+                        }
+                    );
+                } else {
+                    const defaultLat = currentLat || 17.4435;
+                    const defaultLng = currentLng || 78.3772;
+                    setTimeout(() => initMapWithCoords(defaultLat, defaultLng, false), 300);
+                }
+            });
+        }
+
+        if (modalCurrentLocationBtn) {
+            modalCurrentLocationBtn.addEventListener('click', function() {
+                if (!navigator.geolocation) {
+                    alert('Geolocation is not supported by this browser.');
+                    return;
+                }
+                modalCurrentLocationBtn.disabled = true;
+                modalCurrentLocationBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Getting Location...';
+                
+                navigator.geolocation.getCurrentPosition(
+                    async function(position) {
+                        const latitude = position.coords.latitude.toFixed(6);
+                        const longitude = position.coords.longitude.toFixed(6);
+                        const geoData = await reverseGeocode(latitude, longitude);
+                        if (areaInput) areaInput.value = geoData.area;
+                        setSelectedState(geoData.state);
+                        if (pincodeInput) pincodeInput.value = geoData.pincode;
+                        updateFullLocation();
+                        if (latitudeInput) latitudeInput.value = latitude;
+                        if (longitudeInput) longitudeInput.value = longitude;
+                        modalCurrentLocationBtn.disabled = false;
+                        modalCurrentLocationBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs me-2"></i>Use Current Location';
+                        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('mapPickerModal'));
+                        if (modalInstance) modalInstance.hide();
+                    },
+                    function(error) {
+                        alert('Unable to fetch location.');
+                        modalCurrentLocationBtn.disabled = false;
+                        modalCurrentLocationBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs me-2"></i>Use Current Location';
+                    }
+                );
+            });
+        }
+
+        const useSelectedLocationBtn = document.getElementById('useSelectedLocationBtn');
+        if (useSelectedLocationBtn) {
+            useSelectedLocationBtn.addEventListener('click', function() {
+                if (!selectedLat || !selectedLng) {
+                    alert('Please select a location on the map.');
+                    return;
+                }
+                reverseGeocode(selectedLat, selectedLng).then(geoData => {
+                    if (areaInput) areaInput.value = geoData.area;
+                    setSelectedState(geoData.state);
+                    if (pincodeInput) pincodeInput.value = geoData.pincode;
+                    updateFullLocation();
+                    if (latitudeInput) latitudeInput.value = selectedLat;
+                    if (longitudeInput) longitudeInput.value = selectedLng;
+                    const modalInstance = bootstrap.Modal.getInstance(document.getElementById('mapPickerModal'));
+                    if (modalInstance) modalInstance.hide();
+                });
+            });
+        }
+    });
+</script>
+<script>
+    // Copy coach selection logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const hiddenTrainerInput = document.getElementById('hiddenTrainerInput');
+        const trainerSelectionError = document.getElementById('trainerSelectionError');
+        const trainerListContainer = document.getElementById('trainerListContainer');
+        const trainerCards = document.querySelectorAll('.trainer-card');
+        const sortAZCheckbox = document.getElementById('sortAZCheckbox');
+        const sortRatingCheckbox = document.getElementById('sortRatingCheckbox');
+        const nearMeCheckbox = document.getElementById('nearMeCheckbox');
+        const locationInput = document.querySelector('input[name="location"]');
+
+        window.toggleTrainerSelection = function(username) {
+            const card = document.getElementById('trainer-card-' + username);
+            const checkbox = document.getElementById('checkbox-' + username);
+            if (!card || !checkbox) return;
+            
+            const isCurrentlySelected = card.classList.contains('selected-trainer');
+            
+            trainerCards.forEach(c => {
+                c.classList.remove('selected-trainer');
+                const cb = c.querySelector('.trainer-select-checkbox');
+                if (cb) cb.checked = false;
+            });
+
+            if (!isCurrentlySelected) {
+                card.classList.add('selected-trainer');
+                checkbox.checked = true;
+                if (hiddenTrainerInput) hiddenTrainerInput.value = username;
+                if (trainerSelectionError) trainerSelectionError.classList.add('d-none');
+                const confirmBtn = document.getElementById('confirmBookingBtn');
+                if (confirmBtn) confirmBtn.disabled = false;
+            } else {
+                if (hiddenTrainerInput) hiddenTrainerInput.value = '';
+                const confirmBtn = document.getElementById('confirmBookingBtn');
+                if (confirmBtn) confirmBtn.disabled = true;
+            }
+        };
+
+        window.viewTrainerProfile = function(username) {
+            const filterBox = document.getElementById('trainerFilterBox');
+            if (filterBox) filterBox.classList.add('d-none');
+
+            trainerCards.forEach(card => {
+                if (card.getAttribute('data-username') !== username) {
+                    card.classList.add('d-none');
+                } else {
+                    card.classList.remove('d-none');
+                    const actions = document.getElementById('profile-actions-' + username);
+                    if (actions) actions.classList.remove('d-none');
+                    const notice = document.getElementById('profile-notice-' + username);
+                    if (notice) notice.classList.remove('d-none');
+                    const details = document.getElementById('profile-details-more-' + username);
+                    if (details) details.classList.remove('d-none');
+                    const viewBtn = document.getElementById('view-profile-btn-container-' + username);
+                    if (viewBtn) viewBtn.classList.add('d-none');
+                }
+            });
+        };
+
+        window.cancelTrainerProfile = function() {
+            const filterBox = document.getElementById('trainerFilterBox');
+            if (filterBox) filterBox.classList.remove('d-none');
+
+            trainerCards.forEach(card => {
+                const username = card.getAttribute('data-username');
+                const actions = document.getElementById('profile-actions-' + username);
+                if (actions) actions.classList.add('d-none');
+                const notice = document.getElementById('profile-notice-' + username);
+                if (notice) notice.classList.add('d-none');
+                const details = document.getElementById('profile-details-more-' + username);
+                if (details) details.classList.add('d-none');
+                const viewBtn = document.getElementById('view-profile-btn-container-' + username);
+                if (viewBtn) viewBtn.classList.remove('d-none');
+            });
+            filterAndSortTrainers();
+        };
+
+        window.selectTrainerProfile = function(username) {
+            const card = document.getElementById('trainer-card-' + username);
+            if (card && !card.classList.contains('selected-trainer')) {
+                toggleTrainerSelection(username);
+            }
+            cancelTrainerProfile();
+        };
+
+        trainerCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (e.target.closest('.trainer-select-checkbox') || e.target.closest('button')) return;
+                const username = card.getAttribute('data-username');
+                toggleTrainerSelection(username);
+            });
+        });
+
+        function filterAndSortTrainers() {
+            if (!trainerListContainer) return;
+            const activeProfileActions = document.querySelectorAll('.profile-actions:not(.d-none)');
+            if (activeProfileActions.length > 0) return;
+
+            const cardsArray = Array.from(trainerCards);
+            const sortByRating = sortRatingCheckbox ? sortRatingCheckbox.checked : true;
+            const sortByAZ = sortAZCheckbox ? sortAZCheckbox.checked : false;
+            const filterNearMe = nearMeCheckbox ? nearMeCheckbox.checked : false;
+            const locationVal = locationInput ? (locationInput.value || '').trim().toLowerCase() : '';
+
+            cardsArray.forEach(card => {
+                let matchesLocation = true;
+                if (filterNearMe && locationVal) {
+                    const trainerLoc = card.getAttribute('data-location') || '';
+                    const locationWords = locationVal.split(/[\s,]+/);
+                    const matchesKeyword = locationWords.some(word => word.length > 2 && trainerLoc.includes(word));
+                    matchesLocation = locationVal.includes(trainerLoc) || trainerLoc.includes(locationVal) || matchesKeyword;
+                }
+                if (matchesLocation) card.classList.remove('d-none');
+                else card.classList.add('d-none');
+            });
+
+            const sortedCards = cardsArray.filter(c => !c.classList.contains('d-none')).sort((a, b) => {
+                if (sortByRating) {
+                    return parseFloat(b.getAttribute('data-rating') || 0) - parseFloat(a.getAttribute('data-rating') || 0);
+                } else if (sortByAZ) {
+                    return (a.getAttribute('data-name') || '').localeCompare(b.getAttribute('data-name') || '');
+                }
+                return 0;
+            });
+
+            sortedCards.forEach(card => trainerListContainer.appendChild(card));
+        }
+
+        if (sortAZCheckbox && sortRatingCheckbox) {
+            sortAZCheckbox.addEventListener('change', function() {
+                if (sortAZCheckbox.checked) sortRatingCheckbox.checked = false;
+                filterAndSortTrainers();
+            });
+            sortRatingCheckbox.addEventListener('change', function() {
+                if (sortRatingCheckbox.checked) sortAZCheckbox.checked = false;
+                filterAndSortTrainers();
+            });
+        }
+        if (nearMeCheckbox) nearMeCheckbox.addEventListener('change', filterAndSortTrainers);
+        if (locationInput) {
+            locationInput.addEventListener('input', filterAndSortTrainers);
+            locationInput.addEventListener('change', filterAndSortTrainers);
+        }
+
+        const bookingForm = document.getElementById('bookingForm');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function(e) {
+                const selectedTrainer = hiddenTrainerInput ? hiddenTrainerInput.value : '';
+                if (!selectedTrainer) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    
+                    const confirmBookingBtn = document.getElementById('confirmBookingBtn');
+                    const confirmBookingSpinner = document.getElementById('confirmBookingSpinner');
+                    const confirmBookingText = document.getElementById('confirmBookingText');
+                    if (confirmBookingBtn) confirmBookingBtn.disabled = false;
+                    if (confirmBookingSpinner) confirmBookingSpinner.classList.add('d-none');
+                    if (confirmBookingText) confirmBookingText.textContent = 'Proceed to Pay';
+
+                    if (trainerSelectionError) trainerSelectionError.classList.remove('d-none');
+                    alert('Please select a coach from the Active Coaches sidebar pane to proceed.');
+                }
+            });
+        }
+    });
+</script>
+<script>
+    // Form reset listeners
+    document.getElementById('bookingForm')?.addEventListener('reset', function() {
+        window.setTimeout(function() {
+            document.getElementById('packageSelect')?.dispatchEvent(new Event('change', { bubbles: true }));
+            document.getElementById('startDateInput')?.dispatchEvent(new Event('change', { bubbles: true }));
+            document.getElementById('studentSelect')?.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            const hiddenTrainerInput = document.getElementById('hiddenTrainerInput');
+            if (hiddenTrainerInput) hiddenTrainerInput.value = '';
+
+            const trainerCards = document.querySelectorAll('.trainer-card');
+            trainerCards.forEach(c => {
+                c.classList.remove('selected-trainer');
+                const cb = c.querySelector('.trainer-select-checkbox');
+                if (cb) cb.checked = false;
+            });
+
+            const confirmBtn = document.getElementById('confirmBookingBtn');
+            if (confirmBtn) confirmBtn.disabled = true;
+        }, 0);
+    });
+</script>
+{% endblock %}

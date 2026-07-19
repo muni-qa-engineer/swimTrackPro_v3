@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}Help & Support - SwimTrackPro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .premium-contact-card {
+        background: rgba(24, 24, 27, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: var(--radius-md) !important;
+        padding: 1.5rem !important;
+        backdrop-filter: var(--backdrop-blur);
+        transition: all var(--transition-bounce) !important;
+    }
+    
+    .premium-contact-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(6, 182, 212, 0.3) !important;
+        box-shadow: 0 10px 30px rgba(6, 182, 212, 0.1) !important;
+    }
+    
+    .contact-icon-wrapper {
+        transition: transform 0.4s ease;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+    }
+    
+    .premium-contact-card:hover .contact-icon-wrapper {
+        transform: scale(1.1) rotate(8deg);
+        background: rgba(6, 182, 212, 0.1);
+        border-color: var(--color-primary);
+    }
+    
+    /* Accordion Custom Dark Styling */
+    .accordion-item {
+        background: rgba(0, 0, 0, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        margin-bottom: 0.5rem;
+        border-radius: var(--radius-sm) !important;
+        overflow: hidden;
+    }
+    
+    .accordion-button {
+        background: rgba(255, 255, 255, 0.02) !important;
+        color: white !important;
+        font-weight: 600;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .accordion-button:not(.collapsed) {
+        color: var(--color-primary) !important;
+        background: rgba(6, 182, 212, 0.05) !important;
+    }
+    
+    .accordion-button::after {
+        filter: invert(1);
+    }
+    
+    .accordion-body {
+        color: var(--color-text-secondary) !important;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h2 class="font-display text-primary" style="font-size: 1.8rem; margin: 0;"><i class="fa-solid fa-headset"></i> Help & Support</h2>
+    </div>
+
+    <!-- Contact Options Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        
+        <!-- Phone Card -->
+        <div class="premium-contact-card flex flex-col items-center text-center">
+            <div class="contact-icon-wrapper">
+                <i class="fa-solid fa-phone fs-3 text-primary"></i>
+            </div>
+            <h5 class="fw-bold text-white mb-2">Voice Call</h5>
+            <p class="text-muted small mb-4">Call the coach directly for quick scheduling updates or cancellations.</p>
+            <a href="tel:+919133851400" class="btn btn-outline w-100 mt-auto py-2.5" style="border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;">
+                +91 91338 51400
+            </a>
+        </div>
+
+        <!-- WhatsApp Card -->
+        <div class="premium-contact-card flex flex-col items-center text-center">
+            <div class="contact-icon-wrapper">
+                <i class="fa-brands fa-whatsapp fs-2" style="color: var(--color-success);"></i>
+            </div>
+            <h5 class="fw-bold text-white mb-2">WhatsApp Chat</h5>
+            <p class="text-muted small mb-4">Chat with the coach for lesson details, swimming locations, and package inquiries.</p>
+            <a href="https://wa.me/919133851400?text=Hi%20coach,%20I%20need%20help%20with%20SwimTrackPro" target="_blank" class="btn w-100 mt-auto py-2.5" style="background: var(--color-success); border-color: var(--color-success); color: white; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;">
+                Message Coach
+            </a>
+        </div>
+
+        <!-- Email Card -->
+        <div class="premium-contact-card flex flex-col items-center text-center">
+            <div class="contact-icon-wrapper">
+                <i class="fa-solid fa-envelope fs-3" style="color: var(--color-danger);"></i>
+            </div>
+            <h5 class="fw-bold text-white mb-2">Email Support</h5>
+            <p class="text-muted small mb-4">Send support emails for app issues, account inquiries, or billing concerns.</p>
+            <a href="mailto:swimtrackpro.updates@gmail.com?subject=SwimTrackPro%20Support" class="btn w-100 mt-auto py-2.5" style="border-color: var(--color-danger); color: var(--color-danger); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;">
+                Email Support
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Complete Guide Accordion Section -->
+    <div class="glass-panel" style="padding: 2rem;">
+        <h3 class="font-display mb-4" style="font-size: 1.25rem;"><i class="fa-solid fa-book-open text-primary"></i> Complete User Guide</h3>
+        
+        <div class="accordion" id="userGuideAccordion">
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#guideLogin">
+                        <i class="fa-solid fa-lock me-2"></i> 1. Login to the Application
+                    </button>
+                </h2>
+                <div id="guideLogin" class="accordion-collapse collapse show" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Enter your name and mobile number, then click <strong>Login as Guest</strong>. Existing users will be recognized automatically.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideAddSwimmer">
+                        <i class="fa-solid fa-person-swimming me-2"></i> 2. Add a Swimmer
+                    </button>
+                </h2>
+                <div id="guideAddSwimmer" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Click <strong>Add Swimmer</strong> and enter the swimmer's details. Once saved, the swimmer will be available in the booking dropdown.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideBooking">
+                        <i class="fa-regular fa-calendar me-2"></i> 3. Book a Slot
+                    </button>
+                </h2>
+                <div id="guideBooking" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Select the swimmer, package, start date, class days, location, and number of participants. Then click <strong>Confirm Booking</strong>.<br><br>
+                        <strong>Monthly Package:</strong> Select exactly 3 class days.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideEdit">
+                        <i class="fa-solid fa-pencil me-2"></i> 4. Edit Booking
+                    </button>
+                </h2>
+                <div id="guideEdit" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Open your booking card and click <strong>Edit</strong> to update dates, location, payment status, and other details.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideDelete">
+                        <i class="fa-solid fa-trash me-2"></i> 5. Delete Booking
+                    </button>
+                </h2>
+                <div id="guideDelete" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Click <strong>Delete</strong> on the booking card. Depending on permissions, the booking may be removed immediately or sent for admin approval.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideSkip">
+                        <i class="fa-solid fa-forward-step me-2"></i> 6. Skip a Session
+                    </button>
+                </h2>
+                <div id="guideSkip" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Eligible packages allow you to skip sessions and earn make-up credits.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideMakeup">
+                        <i class="fa-solid fa-rotate me-2"></i> 7. Use a Make-Up Class
+                    </button>
+                </h2>
+                <div id="guideMakeup" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Select a new date using your available make-up credit and submit the request. The coach will approve or reject it.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideCalendar">
+                        <i class="fa-regular fa-calendar-days me-2"></i> 8. View Calendar
+                    </button>
+                </h2>
+                <div id="guideCalendar" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Open the calendar to view all scheduled classes, skipped sessions, and approved make-up dates.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideNotice">
+                        <i class="fa-solid fa-bullhorn me-2"></i> 9. Notice Board
+                    </button>
+                </h2>
+                <div id="guideNotice" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Read important announcements from the coach. Admin users can update the scrolling notice from the dashboard.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideFees">
+                        <i class="fa-solid fa-indian-rupee-sign me-2"></i> 10. Fee Calculation
+                    </button>
+                </h2>
+                <div id="guideFees" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                    <div class="accordion-body">
+                        Fees are calculated automatically based on the selected package, number of class days, and number of participants.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% set active_page = 'contact' %}
+{% include 'components/mobile_bottom_nav.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='common.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
