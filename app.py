@@ -108,6 +108,19 @@ def ensure_makeup_tables():
     cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS consent_accepted BOOLEAN DEFAULT FALSE")
     cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS rating NUMERIC(3,2) DEFAULT 5.00")
     cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS photos TEXT DEFAULT ''")
+    
+    # V0034.0 - Rich Trainer Profiles
+    cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS bio TEXT")
+    cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS specialties TEXT")
+    cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS instagram TEXT")
+    cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS facebook TEXT")
+    cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS twitter TEXT")
+    
+    # Trainer Payment Settings
+    cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS upi_id TEXT")
+    cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS qr_code TEXT")
+    cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS account_holder_name TEXT")
+    cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS youtube TEXT")
     cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS notice TEXT DEFAULT ''")
     cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT FALSE")
     cursor.execute("ALTER TABLE trainers ADD COLUMN IF NOT EXISTS whatsapp TEXT DEFAULT ''")
