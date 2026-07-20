@@ -355,6 +355,7 @@ def _process_common_dashboard_data(user_bookings, user_students, current_role, c
     trainer_upcoming_slots = []
     trainer_remaining_slots = 0
     upcoming_sessions = []
+    all_future_sessions = []
 
     for booking in user_bookings:
         booking_time = (booking.get('time') or '').strip()
@@ -362,11 +363,17 @@ def _process_common_dashboard_data(user_bookings, user_students, current_role, c
             try:
                 session_datetime = datetime.strptime(f"{session_date} {booking_time}", '%Y-%m-%d %I:%M %p')
                 current_time = ist_now.replace(tzinfo=None)
-                next_24_hours = current_time + timedelta(hours=24)
-                if current_time <= session_datetime <= next_24_hours:
-                    upcoming_sessions.append({'datetime': session_datetime, 'student': booking.get('student', '--'), 'time': booking_time})
+                if session_datetime >= current_time:
+                    session_info = {'datetime': session_datetime, 'student': booking.get('student', '--'), 'time': booking_time, 'booking_id': booking.get('id'), 'raw_date': session_date}
+                    all_future_sessions.append(session_info)
+                    
+                    next_24_hours = current_time + timedelta(hours=24)
+                    if session_datetime <= next_24_hours:
+                        upcoming_sessions.append(session_info)
             except Exception:
                 continue
+
+    all_future_sessions.sort(key=lambda x: x['datetime'])
 
     if current_role == 'trainer':
         slot_counts = {}
@@ -392,11 +399,13 @@ def _process_common_dashboard_data(user_bookings, user_students, current_role, c
         ]
     elif upcoming_sessions:
         sorted_sessions = sorted(upcoming_sessions, key=lambda x: x['datetime'])
-        guest_upcoming_sessions = [{'name': s['student'], 'date': s['datetime'].strftime('%d %b'), 'time': s['time']} for s in sorted_sessions[:5]]
+        guest_upcoming_sessions = [{'name': s['student'], 'date': s['datetime'].strftime('%d %b'), 'time': s['time'], 'booking_id': s['booking_id'], 'raw_date': s['raw_date']} for s in sorted_sessions[:5]]
         next_session = sorted_sessions[0]
         next_session_name = next_session['student']
         next_session_date = next_session['datetime'].strftime('%d %b')
         next_session_time = next_session['time']
+        
+    guest_all_future = [{'name': s['student'], 'date': s['datetime'].strftime('%d %b %Y'), 'time': s['time'], 'booking_id': s['booking_id'], 'raw_date': s['raw_date']} for s in all_future_sessions[:15]]
 
     total_packages = len(user_bookings)
     active_packages = active_bookings
@@ -542,6 +551,7 @@ def _process_common_dashboard_data(user_bookings, user_students, current_role, c
         'next_session_date': next_session_date,
         'next_session_time': next_session_time,
         'guest_upcoming_sessions': guest_upcoming_sessions,
+        'guest_all_future': guest_all_future,
         'trainer_upcoming_slots': trainer_upcoming_slots,
         'trainer_remaining_slots': trainer_remaining_slots,
         'active_package_name': active_package_name,

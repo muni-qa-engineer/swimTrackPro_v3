@@ -485,13 +485,6 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="feature-name">Coaching Fee</td>
-                                <td>₹{{ '{:,}'.format(pkg['individual']['demo'].final_price) }} {% if pkg['individual']['demo'].final_price == 0 %}(Free){% endif %} <span class="small text-muted">/ session</span></td>
-                                <td>₹{{ '{:,}'.format(pkg['individual']['single'].final_price) }} <span class="small text-muted">/ session</span></td>
-                                <td class="text-white fw-bold">₹{{ '{:,}'.format(pkg['individual']['monthly'].final_price) }} <span class="small text-muted">/ month</span></td>
-                                <td>Dynamic pricing</td>
-                            </tr>
-                            <tr>
                                 <td class="feature-name">Pool Facility</td>
                                 <td colspan="4" class="text-white text-center">Provided by Swimmer (At Your Villa, Apartment, or Club)</td>
                             </tr>
@@ -538,12 +531,19 @@
                                 <td>Up to 21% off</td>
                             </tr>
                             <tr>
+                                <td class="feature-name">Coaching Fee</td>
+                                <td>₹{{ '{:,}'.format(pkg['individual']['demo'].final_price) }} {% if pkg['individual']['demo'].final_price == 0 %}(Free){% endif %} <span class="small text-muted">/ session</span></td>
+                                <td>₹{{ '{:,}'.format(pkg['individual']['single'].final_price) }} <span class="small text-muted">/ session</span></td>
+                                <td class="text-white fw-bold">₹{{ '{:,}'.format(pkg['individual']['monthly'].final_price) }} <span class="small text-muted">/ month</span></td>
+                                <td>Dynamic pricing</td>
+                            </tr> 
+                            <tr>
                                 <td></td>
                                 <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Demo</button></td>
                                 <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Single</button></td>
                                 <td><button class="btn btn-primary btn-sm px-4" onclick="openLoginModal()">Book Monthly</button></td>
                                 <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Configure</button></td>
-                            </tr>
+                            </tr>                                                       
                         </tbody>
                     </table>
                 </div>
