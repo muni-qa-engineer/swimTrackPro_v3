@@ -259,11 +259,11 @@
                 {% if session.get('role') != 'admin' %}
                     {% if session.get('user_name') %}
                         <a href="/" class="nav-link">Dashboard</a>
-                        <a href="/my-bookings" class="nav-link">Bookings</a>
-                        <a href="/payments" class="nav-link">Payments</a>
                         {% if session.get('role') != 'trainer' %}
                         <a href="/booking" class="nav-link">Book Session</a>
                         {% endif %}
+                        <a href="/my-bookings" class="nav-link">Bookings</a>
+                        <a href="/payments" class="nav-link">Payments</a>
                         {% if session.get('role') == 'trainer' %}
                         <a href="{{ url_for('about_trainer') }}" class="nav-link">Update My Profile</a>
                         {% else %}
@@ -418,6 +418,12 @@
             <i class="fa-solid fa-house"></i>
             <span>Dashboard</span>
         </a>
+        {% if session.get('role') != 'trainer' %}
+            <a href="/booking" class="nav-item">
+                <i class="fa-solid fa-calendar-plus"></i>
+                <span>Book Session</span>
+            </a>
+        {% endif %}
         <a href="/my-bookings" class="nav-item">
             <i class="fa-solid fa-clipboard-list"></i>
             <span>Bookings</span>
@@ -426,12 +432,6 @@
             <i class="fa-solid fa-credit-card"></i>
             <span>Payments</span>
         </a>
-        {% if session.get('role') != 'trainer' %}
-            <a href="/booking" class="nav-item">
-                <i class="fa-solid fa-calendar-plus"></i>
-                <span>Book Session</span>
-            </a>
-        {% endif %}
         <a href="{{ url_for('about_trainer') }}" class="nav-item">
             <i class="fa-solid fa-user-tie"></i>
             <span>{% if session.get('role') == 'trainer' %}Profile{% else %}Coach{% endif %}</span>
