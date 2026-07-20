@@ -299,11 +299,11 @@
                     <div class="dropdown">
                         <a href="#" class="{% if session.get('role') != 'admin' %}user-avatar-badge{% endif %} dropdown-toggle" id="avatarDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; {% if session.get('role') == 'admin' %}background: transparent; color: white; display: flex; align-items: center; gap: 0.75rem;{% endif %}">
                             {% if session.get('role') == 'admin' %}
-                                <div style="text-align: right;" class="d-none d-sm-block text-white">
+                                <div style="text-align: right; pointer-events: none;" class="d-none d-sm-block text-white">
                                     <div style="font-weight: 700; font-size: 0.9rem; line-height: 1.2;">Super Admin</div>
                                     <div class="text-muted" style="font-size: 0.75rem;">admin@swimtrackpro.com</div>
                                 </div>
-                                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: white;">
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: white; pointer-events: none;">
                                     👑
                                 </div>
                             {% else %}
