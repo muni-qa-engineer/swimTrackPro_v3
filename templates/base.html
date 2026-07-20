@@ -251,13 +251,7 @@
                 <a href="/" class="logo animate-fade-in" style="margin: 0;">
                     <i class="fa-solid fa-water"></i> <span>SwimTrackPro</span>
                 </a>
-                
-                {% if session.get('user_name') and session.get('role') != 'admin' %}
-                <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.15);" class="d-lg-none"></div>
-                <div class="font-display text-primary animate-fade-in d-lg-none" style="font-weight: 700; font-size: 1.25rem; letter-spacing: 0.5px;">
-                    {% block page_title %}Dashboard{% endblock %}
-                </div>
-                {% endif %}
+
             </div>
             
             <!-- Desktop Center Links (Swimmer / Coach) -->
@@ -329,6 +323,15 @@
             <!-- Mobile Menu Dropdown Removed as requested -->
             
         </div>
+
+        <!-- Mobile Active Tab Sub-header -->
+        {% if session.get('user_name') and session.get('role') != 'admin' %}
+        <div class="d-lg-none mt-3 px-3 pt-3 pb-1" style="border-top: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.2);">
+            <div class="container font-display text-primary" style="font-weight: 700; font-size: 1.35rem; letter-spacing: 0.5px; padding: 0;">
+                {% block page_title %}Dashboard{% endblock %}
+            </div>
+        </div>
+        {% endif %}
     </header>
     {% endblock %}
 
