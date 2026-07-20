@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us - SwimTrackPro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h2 class="font-display text-primary" style="font-size: 1.8rem; margin: 0;"><i class="fa-solid fa-building"></i> About Us</h2>
+    </div>
+
+    <div class="glass-panel p-4 p-md-5">
+        <h3 class="font-display fw-bold mb-4" style="color: white; font-size: 1.6rem;">Who We Are</h3>
+        <p class="text-secondary" style="font-size: 1rem; line-height: 1.8; margin-bottom: 2rem;">
+            At SwimTrackPro, we are dedicated to transforming the swimming experience. We make group coaching fun, daily tracking effortless & intuitive, and performance insights easy with real-time stats. Whether you are a beginner looking to build confidence in the water or a seasoned athlete aiming to optimize your stroke, our platform bridges the gap between swimmers and expert coaches.
+        </p>
+
+        <h3 class="font-display fw-bold mb-4" style="color: white; font-size: 1.6rem;">What We Do</h3>
+        <p class="text-secondary" style="font-size: 1rem; line-height: 1.8; margin-bottom: 2rem;">
+            We provide a premium swimming tracking and coaching platform that elevates your aquatic performance. By offering unlimited sports tracking and a seamless booking experience, we ensure that swimming and aquatic care are completely hassle-free. From dynamic private coaching at your preferred pool to comprehensive progress metrics, SwimTrackPro is built for excellence.
+        </p>
+
+        <div class="text-center mt-5">
+            <h4 class="font-display text-primary fw-bold" style="font-size: 1.4rem;">#SwimBetterEveryDay</h4>
+        </div>
+    </div>
+</div>
+{% endblock %}

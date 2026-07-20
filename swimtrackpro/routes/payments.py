@@ -118,5 +118,53 @@ def update_payment_status(booking_id):
     flash('Payment status updated successfully')
     return redirect(url_for('index'))
 
+def update_trainer_payment_details():
+    import os
+    if session.get('role') != 'trainer':
+        flash('Unauthorized access.')
+        return redirect(url_for('index'))
+        
+    username = session.get('user_name')
+    if not username:
+        return redirect(url_for('index'))
+        
+    upi_id = request.form.get('upi_id', '').strip()
+    account_holder_name = request.form.get('account_holder_name', '').strip()
+    
+    qr_file = request.files.get('qr_code')
+    qr_code_filename = None
+    
+    conn = get_pg_connection()
+    cursor = conn.cursor()
+    
+    if qr_file and qr_file.filename:
+        from werkzeug.utils import secure_filename
+        filename = secure_filename(f"qr_{username}_{qr_file.filename}")
+        upload_dir = os.path.join("static", "uploads", "qr_codes")
+        os.makedirs(upload_dir, exist_ok=True)
+        filepath = os.path.join(upload_dir, filename)
+        qr_file.save(filepath)
+        qr_code_filename = filename
+        
+    if qr_code_filename:
+        cursor.execute('''
+            UPDATE trainers 
+            SET upi_id = %s, account_holder_name = %s, qr_code = %s 
+            WHERE LOWER(username) = LOWER(%s)
+        ''', (upi_id, account_holder_name, qr_code_filename, username))
+    else:
+        cursor.execute('''
+            UPDATE trainers 
+            SET upi_id = %s, account_holder_name = %s 
+            WHERE LOWER(username) = LOWER(%s)
+        ''', (upi_id, account_holder_name, username))
+        
+    conn.commit()
+    conn.close()
+    
+    flash('Payment details updated successfully.')
+    return redirect('/payments')
+
 def register_payments_routes(app):
     app.add_url_rule('/update_payment_status/<booking_id>', endpoint='update_payment_status', view_func=update_payment_status, methods=['POST'])
+    app.add_url_rule('/update_trainer_payment_details', endpoint='update_trainer_payment_details', view_func=update_trainer_payment_details, methods=['POST'])

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
-{% block title %}Payments - SwimTrackPro{% endblock %}
+{% block title %}Payments | SwimTrack Pro{% endblock %}
+{% block page_title %}Payments{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
@@ -63,9 +64,7 @@
 {% block content %}
 <div class="container py-4">
 
-    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
-        <h2 class="font-display text-primary" style="font-size: 1.8rem; margin: 0;"><i class="fa-solid fa-credit-card"></i> Payments</h2>
-    </div>
+
 
     <div id="paymentsSection">
         
@@ -100,42 +99,77 @@
             
             <!-- Left Column: Payment Details & QR Code -->
             <div class="glass-panel" style="padding: 1.5rem; height: fit-content;">
-                <h3 class="font-display mb-4" style="font-size: 1.25rem;"><i class="fa-solid fa-circle-info text-accent"></i> Payment Information</h3>
                 
-                <div class="flex flex-col gap-3" style="font-size: 0.9rem; margin-bottom: 1.5rem;">
-                    <div>
-                        <span class="text-muted">Acc Holder:</span>
-                        <div style="font-weight: 600;">{{ account_holder_name }}</div>
-                    </div>
-                    <div>
-                        <span class="text-muted">Phone:</span>
-                        <div style="font-weight: 600;">{{ trainer_phone }}</div>
-                    </div>
-                    <div>
-                        <span class="text-muted">UPI ID:</span>
-                        <div style="font-weight: 600; color: var(--color-primary);">{{ upi_id }}</div>
-                    </div>
-                    <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem;">
-                        <span class="text-muted">Total Outstanding:</span>
-                        <div style="font-size: 1.4rem; font-weight: 800; color: #f87171;">₹{{ total_pending_amount }}</div>
-                    </div>
-                </div>
-                
-                <div class="qr-container text-center">
-                    <h4 class="font-display mb-3" style="font-size: 1rem;">Scan to Pay</h4>
+                {% if role == 'trainer' %}
+                    <h3 class="font-display mb-4" style="font-size: 1.25rem;"><i class="fa-solid fa-sliders text-accent"></i> My Payment Settings</h3>
+                    <p class="text-secondary small mb-4">Set your UPI details so students can pay you directly. Guests will see these details when making payments.</p>
                     
-                    <a id="upiPaymentLink" href="upi://pay?pa={{ upi_id }}&pn={{ account_holder_name|urlencode }}&cu=INR&tn=SwimTrackPro%20Payment">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ ('upi://pay?pa=' ~ upi_id ~ '&pn=' ~ account_holder_name ~ '&am=' ~ total_pending_amount ~ '&cu=INR&tn=SwimTrackPro Payment')|urlencode }}" alt="UPI QR Code" style="border-radius: var(--radius-sm); margin-bottom: 1rem; width: 100%; max-width: 180px;">
-                    </a>
+                    <form action="{{ url_for('update_trainer_payment_details') }}" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Account Holder Name</label>
+                            <input type="text" class="form-control" name="account_holder_name" value="{{ trainer_payment_settings.account_holder_name if trainer_payment_settings else '' }}" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">UPI ID</label>
+                            <input type="text" class="form-control" name="upi_id" value="{{ trainer_payment_settings.upi_id if trainer_payment_settings else '' }}" placeholder="e.g. john@upi">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small">Custom QR Code (Optional)</label>
+                            <input type="file" class="form-control" name="qr_code" accept="image/*">
+                            {% if trainer_payment_settings and trainer_payment_settings.qr_code %}
+                                <div class="mt-2 small text-success"><i class="fa-solid fa-check"></i> Custom QR currently uploaded</div>
+                                <img src="{{ url_for('static', filename='uploads/qr_codes/' ~ trainer_payment_settings.qr_code) }}" alt="QR" style="width: 100px; margin-top: 10px; border-radius: var(--radius-sm);">
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Save Payment Details</button>
+                    </form>
+                {% else %}
+                    {% set display_acc_name = trainer_payment_settings.account_holder_name if trainer_payment_settings and trainer_payment_settings.account_holder_name else account_holder_name %}
+                    {% set display_upi = trainer_payment_settings.upi_id if trainer_payment_settings and trainer_payment_settings.upi_id else upi_id %}
                     
-                    <a id="upiPaymentBtn" class="btn btn-primary w-100 py-2.5" href="upi://pay?pa={{ upi_id }}&pn={{ account_holder_name|urlencode }}&cu=INR&tn=SwimTrackPro%20Payment">
-                        Open UPI App
-                    </a>
-                </div>
-                
-                <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.15); color: var(--color-warning);">
-                    <i class="fa-solid fa-triangle-exclamation"></i> After paying, change status to <strong>Mark as Paid</strong> in the records to request coach verification.
-                </div>
+                    <h3 class="font-display mb-4" style="font-size: 1.25rem;"><i class="fa-solid fa-circle-info text-accent"></i> Payment Information</h3>
+                    
+                    <div class="flex flex-col gap-3" style="font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <span class="text-muted">Acc Holder:</span>
+                            <div style="font-weight: 600;">{{ display_acc_name }}</div>
+                        </div>
+                        <div>
+                            <span class="text-muted">Phone:</span>
+                            <div style="font-weight: 600;">{{ trainer_phone }}</div>
+                        </div>
+                        <div>
+                            <span class="text-muted">UPI ID:</span>
+                            <div style="font-weight: 600; color: var(--color-primary);">{{ display_upi }}</div>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem;">
+                            <span class="text-muted">Total Outstanding:</span>
+                            <div style="font-size: 1.4rem; font-weight: 800; color: #f87171;">₹{{ total_pending_amount }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="qr-container text-center">
+                        <h4 class="font-display mb-3" style="font-size: 1rem;">Scan to Pay</h4>
+                        
+                        {% if trainer_payment_settings and trainer_payment_settings.qr_code %}
+                            <a id="upiPaymentLink" href="{{ url_for('static', filename='uploads/qr_codes/' ~ trainer_payment_settings.qr_code) }}" target="_blank">
+                                <img src="{{ url_for('static', filename='uploads/qr_codes/' ~ trainer_payment_settings.qr_code) }}" alt="UPI QR Code" style="border-radius: var(--radius-sm); margin-bottom: 1rem; width: 100%; max-width: 180px;">
+                            </a>
+                        {% else %}
+                            <a id="upiPaymentLink" href="upi://pay?pa={{ display_upi }}&pn={{ display_acc_name|urlencode }}&cu=INR&tn=SwimTrackPro%20Payment">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ ('upi://pay?pa=' ~ display_upi ~ '&pn=' ~ display_acc_name ~ '&am=' ~ total_pending_amount ~ '&cu=INR&tn=SwimTrackPro Payment')|urlencode }}" alt="UPI QR Code" style="border-radius: var(--radius-sm); margin-bottom: 1rem; width: 100%; max-width: 180px;">
+                            </a>
+                        {% endif %}
+                        
+                        <a id="upiPaymentBtn" class="btn btn-primary w-100 py-2.5" href="upi://pay?pa={{ display_upi }}&pn={{ display_acc_name|urlencode }}&cu=INR&tn=SwimTrackPro%20Payment">
+                            Open UPI App
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.15); color: var(--color-warning);">
+                        <i class="fa-solid fa-triangle-exclamation"></i> After paying, change status to <strong>Mark as Paid</strong> in the records to request coach verification.
+                    </div>
+                {% endif %}
             </div>
             
             <!-- Right Column: Table Records -->
@@ -201,5 +235,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 {% endblock %}

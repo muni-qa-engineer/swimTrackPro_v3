@@ -1,0 +1,80 @@
+<style>
+    .stepper-row {
+        position: relative;
+        padding: 0.5rem;
+    }
+    .step-col {
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+    }
+    .step-num {
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .step-col.completed .step-num {
+        background-color: #10b981 !important; /* Success green */
+        color: white !important;
+    }
+    .step-col.active .step-num {
+        background: var(--gradient-primary) !important;
+        color: black !important;
+        box-shadow: 0 0 10px var(--color-primary-glow);
+    }
+    .step-col.completed .step-label {
+        color: #10b981 !important;
+    }
+    .step-col.active .step-label {
+        color: white !important;
+    }
+    @media (max-width: 768px) {
+        .step-label {
+            display: none !important;
+        }
+        .step-divider {
+            margin: 0 0.5rem !important;
+        }
+    }
+</style>
+
+<div class="glass-panel mb-4 py-3 px-4 animate-slide-down" style="border-radius: var(--radius-sm);">
+    <div class="stepper-row d-flex justify-content-between align-items-center flex-wrap flex-md-nowrap gap-2 gap-md-3">
+        <!-- Step 1: Session Details -->
+        <div class="step-col d-flex align-items-center gap-2 {{ 'active' if current_step == 1 else 'completed' if current_step > 1 else '' }}" id="step-indicator-1">
+            <span class="step-num {{ 'bg-primary text-black' if current_step == 1 else 'bg-secondary text-white' }} fw-bold rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                {% if current_step > 1 %}<i class="fa-solid fa-check"></i>{% else %}1{% endif %}
+            </span>
+            <span class="step-label {{ 'text-white fw-bold' if current_step == 1 else 'text-muted' }}" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Session Details</span>
+        </div>
+        
+        <div class="step-divider flex-grow-1 border-top border-secondary" style="border-style: dashed !important; opacity: 0.25; margin: 0 1rem; min-width: 20px;"></div>
+        
+        <!-- Step 2: Coach Selection -->
+        <div class="step-col d-flex align-items-center gap-2 {{ 'active' if current_step == 2 else 'completed' if current_step > 2 else '' }}" id="step-indicator-2">
+            <span class="step-num {{ 'bg-primary text-black' if current_step == 2 else 'bg-secondary text-white' }} fw-bold rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                {% if current_step > 2 %}<i class="fa-solid fa-check"></i>{% else %}2{% endif %}
+            </span>
+            <span class="step-label {{ 'text-white fw-bold' if current_step == 2 else 'text-muted' }}" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Coach Selection</span>
+        </div>
+        
+        <div class="step-divider flex-grow-1 border-top border-secondary" style="border-style: dashed !important; opacity: 0.25; margin: 0 1rem; min-width: 20px;"></div>
+        
+        <!-- Step 3: Swimmer Details -->
+        <div class="step-col d-flex align-items-center gap-2 {{ 'active' if current_step == 3 else 'completed' if current_step > 3 else '' }}" id="step-indicator-3">
+            <span class="step-num {{ 'bg-primary text-black' if current_step == 3 else 'bg-secondary text-white' }} fw-bold rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                {% if current_step > 3 %}<i class="fa-solid fa-check"></i>{% else %}3{% endif %}
+            </span>
+            <span class="step-label {{ 'text-white fw-bold' if current_step == 3 else 'text-muted' }}" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Swimmer Details</span>
+        </div>
+        
+        <div class="step-divider flex-grow-1 border-top border-secondary" style="border-style: dashed !important; opacity: 0.25; margin: 0 1rem; min-width: 20px;"></div>
+        
+        <!-- Step 4: Confirmation -->
+        <div class="step-col d-flex align-items-center gap-2 {{ 'active' if current_step == 4 else 'completed' if current_step > 4 else '' }}" id="step-indicator-4">
+            <span class="step-num {{ 'bg-primary text-black' if current_step == 4 else 'bg-secondary text-white' }} fw-bold rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                {% if current_step > 4 %}<i class="fa-solid fa-check"></i>{% else %}4{% endif %}
+            </span>
+            <span class="step-label {{ 'text-white fw-bold' if current_step == 4 else 'text-muted' }}" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Confirmation</span>
+        </div>
+    </div>
+</div>

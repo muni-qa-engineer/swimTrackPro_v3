@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}My Bookings | SwimTrack Pro{% endblock %}
+{% block page_title %}Bookings{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
@@ -115,9 +116,8 @@
 {% block content %}
 <div class="container py-4">
 
-    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
-        <h2 class="font-display text-primary" style="font-size: 1.8rem; margin: 0;"><i class="fa-solid fa-clipboard-list"></i> My Bookings</h2>
-    </div>
+
+
 
     <div id="bookingsSection">
         <div class="row g-0">
@@ -570,10 +570,11 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             if (this.dataset.confirmed !== 'true') {
                 this.dataset.confirmed = 'true';
-                this.classList.remove('btn-outline-danger');
+                this.classList.remove('btn-outline-danger', 'btn-outline');
                 this.classList.add('btn-primary');
                 this.style.background = 'var(--color-danger)';
                 this.style.borderColor = 'var(--color-danger)';
+                this.style.color = '#ffffff';
                 this.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Confirm Delete';
 
                 clearTimeout(this.resetTimer);
@@ -582,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.dataset.confirmed = 'false';
                         this.classList.remove('btn-primary');
                         this.classList.add('btn-outline');
-                        this.style.background = 'none';
+                        this.style.background = 'transparent';
                         this.style.borderColor = 'var(--color-danger)';
                         this.style.color = 'var(--color-danger)';
                         this.innerHTML = 'Delete';
@@ -763,5 +764,5 @@ window.submitResumeForm = function(e) {
     });
 };
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 {% endblock %}

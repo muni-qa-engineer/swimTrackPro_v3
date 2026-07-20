@@ -61,7 +61,7 @@ def get_admin_dashboard_data(current_user, data):
             'created_at': r[9].strftime('%Y-%m-%d %H:%M:%S') if r[9] else '--'
         })
         
-    conn.close()
+
 
     # Calculate today's sessions and weekly distribution from full bookings data
     today_str = datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%Y-%m-%d')
@@ -105,6 +105,20 @@ def get_admin_dashboard_data(current_user, data):
     resume_pending_count = sum(1 for b in data.get('bookings', []) if b.get('pause_status') == 'Approval Pending')
     chart_data = [day_counts[d] for d in days_of_week]
     
+    # Fetch Packages
+    cursor.execute("SELECT id, category, package_name, base_price, discount_percentage FROM packages ORDER BY id")
+    packages_list = []
+    for row in cursor.fetchall():
+        packages_list.append({
+            'id': row[0],
+            'category': row[1],
+            'package_name': row[2],
+            'base_price': row[3],
+            'discount_percentage': row[4]
+        })
+        
+    conn.close()
+
     return {
         'trainers': trainers_list,
         'bookings': data.get('bookings', []),
@@ -116,8 +130,38 @@ def get_admin_dashboard_data(current_user, data):
         'auto_resume_today_count': auto_resume_today_count,
         'paused_this_week_count': paused_this_week_count,
         'resume_pending_count': resume_pending_count,
-        'audit_logs': audit_logs
+        'audit_logs': audit_logs,
+        'packages': packages_list
     }
+
+def get_all_packages():
+    """Fetch all packages for the landing page."""
+    conn = get_pg_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, category, package_name, base_price, discount_percentage FROM packages")
+    packages = []
+    for row in cursor.fetchall():
+        bp = row[3]
+        dp = row[4]
+        final_price = int(bp - (bp * dp / 100.0)) if dp > 0 else bp
+        packages.append({
+            'id': row[0],
+            'category': row[1],
+            'package_name': row[2],
+            'base_price': bp,
+            'discount_percentage': dp,
+            'final_price': final_price
+        })
+    conn.close()
+    
+    # Convert to a dictionary for easier access in Jinja
+    pkg_dict = {}
+    for p in packages:
+        if p['category'] not in pkg_dict:
+            pkg_dict[p['category']] = {}
+        pkg_dict[p['category']][p['package_name']] = p
+        
+    return pkg_dict
 
 def get_trainer_dashboard_data(trainer_username, data):
     """Fetch and process data specifically for the Trainer dashboard."""
@@ -137,7 +181,91 @@ def get_trainer_dashboard_data(trainer_username, data):
         if isinstance(s, dict)
         and ((s.get('owner_name') or '').strip().lower(), s.get('owner_phone')) in assigned_student_keys
     ]
-    return _process_common_dashboard_data(user_bookings, user_students, 'trainer', trainer_username)
+    base_data = _process_common_dashboard_data(user_bookings, user_students, 'trainer', trainer_username)
+    
+    # Custom Trainer Metrics
+    # 1. Pending Approvals
+    pending_pauses = [b for b in user_bookings if b.get('pause_status') == 'Approval Pending']
+    pending_payments = [b for b in user_bookings if str(b.get('status', '')).lower() != 'paid']
+    
+    # 2. Earnings and Trends (Monthly)
+    ist_now = datetime.now(ZoneInfo('Asia/Kolkata'))
+    current_year = ist_now.year
+    current_month = ist_now.month
+    
+    monthly_earnings = [0] * 12
+    for b in user_bookings:
+        if str(b.get('status', '')).lower() == 'paid':
+            start_date_str = b.get('start_date')
+            if start_date_str:
+                try:
+                    dt = datetime.strptime(start_date_str, '%Y-%m-%d')
+                    if dt.year == current_year:
+                        fee = int(b.get('fee', 0) or 0)
+                        monthly_earnings[dt.month - 1] += fee
+                except ValueError:
+                    pass
+                    
+    students_this_month = 0
+    students_last_month = 0
+    for b in user_bookings:
+        start_date_str = b.get('start_date')
+        if start_date_str:
+            try:
+                dt = datetime.strptime(start_date_str, '%Y-%m-%d')
+                if dt.year == current_year and dt.month == current_month:
+                    students_this_month += 1
+                elif (dt.year == current_year and dt.month == current_month - 1) or (current_month == 1 and dt.year == current_year - 1 and dt.month == 12):
+                    students_last_month += 1
+            except ValueError:
+                pass
+                
+    trend_growth = students_this_month - students_last_month
+
+    # 3. Feedback and Ratings
+    feedbacks = []
+    avg_rating = 0.0
+    try:
+        from swimtrackpro.runtime import get_pg_connection
+        conn = get_pg_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT rating FROM trainers WHERE LOWER(username) = LOWER(%s)", (trainer_username,))
+        row = cursor.fetchone()
+        if row and row[0]:
+            avg_rating = float(row[0])
+            
+        cursor.execute("""
+            SELECT guest_name, rating, pros, cons, created_at 
+            FROM coach_feedback 
+            WHERE LOWER(trainer_username) = LOWER(%s)
+            ORDER BY created_at DESC LIMIT 10
+        """, (trainer_username,))
+        
+        for f in cursor.fetchall():
+            feedbacks.append({
+                'guest_name': f[0],
+                'rating': f[1],
+                'pros': f[2],
+                'cons': f[3],
+                'created_at': f[4].strftime('%b %d, %Y') if f[4] else ''
+            })
+        conn.close()
+    except Exception as e:
+        print(f"Error fetching feedback: {e}")
+
+    base_data.update({
+        'pending_pauses': pending_pauses,
+        'pending_payments': pending_payments,
+        'monthly_earnings': monthly_earnings,
+        'trend_growth': trend_growth,
+        'students_this_month': students_this_month,
+        'lifetime_students': len(assigned_student_keys),
+        'avg_rating': avg_rating,
+        'feedbacks': feedbacks
+    })
+    
+    return base_data
 
 def get_guest_dashboard_data(current_user, current_phone, data):
     """Fetch and process data specifically for the Guest dashboard."""

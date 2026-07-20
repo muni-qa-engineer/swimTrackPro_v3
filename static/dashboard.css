@@ -570,6 +570,10 @@ input::placeholder {
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
+  
+  .dashboard-main {
+    padding-bottom: 90px !important;
+  }
 }
 
 /* ==========================================================================

@@ -121,61 +121,146 @@
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
             backdrop-filter: blur(10px);
         }
-        
-        /* Mobile Dropdown styling */
-        .mobile-dropdown-container {
+
+        /* Mobile Bottom Nav styling */
+        .mobile-bottom-nav {
             display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(24, 24, 27, 0.98);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+            justify-content: space-around;
+            align-items: center;
+            height: 65px;
         }
-        
+
+        .mobile-bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            font-size: 0.7rem;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .mobile-bottom-nav .nav-item.active,
+        .mobile-bottom-nav .nav-item:hover {
+            color: var(--color-primary);
+        }
+
+        .mobile-bottom-nav .nav-item i {
+            font-size: 1.25rem;
+        }
+
         @media (max-width: 992px) {
-            .nav-links, .desktop-right-nav {
+            .nav-container {
+                flex-wrap: wrap;
+                justify-content: space-between;
+                padding-bottom: 0;
+            }
+            .nav-links {
                 display: none !important;
             }
-            .mobile-dropdown-container {
-                display: block !important;
-                margin-left: auto;
+
+            .desktop-right-nav {
+                display: flex !important;
+            }
+            body {
+                padding-bottom: 70px;
+            }
+            .mobile-bottom-nav {
+                display: flex !important;
             }
         }
+        
     </style>
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% endblock %}" style="display: flex; flex-direction: column; min-height: 100vh;">
 
     {% block header %}
     <header class="site-header">
         <div class="container nav-container">
             
-            <!-- Logo / Left Brand -->
-            <a href="/" class="logo animate-fade-in">
-                <i class="fa-solid fa-water"></i> SwimTrackPro
-            </a>
+            <!-- Logo / Left Brand & Page Title -->
+            <div class="d-flex align-items-center gap-3">
+                <a href="/" class="logo animate-fade-in" style="margin: 0;">
+                    <i class="fa-solid fa-water"></i> <span>SwimTrackPro</span>
+                </a>
+                
+                {% if session.get('user_name') and session.get('role') != 'admin' %}
+                <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.15);" class="d-lg-none"></div>
+                <div class="font-display text-primary animate-fade-in d-lg-none" style="font-weight: 700; font-size: 1.25rem; letter-spacing: 0.5px;">
+                    {% block page_title %}Dashboard{% endblock %}
+                </div>
+                {% endif %}
+            </div>
             
             <!-- Desktop Center Links (Swimmer / Coach) -->
             <nav class="nav-links animate-fade-in">
-                {% if session.get('user_name') %}
-                    <a href="/" class="nav-link">Dashboard</a>
-                    <a href="/my-bookings" class="nav-link">Bookings</a>
-                    <a href="/booking" class="nav-link">Book Session</a>
-                    <a href="{{ url_for('about_trainer') }}" class="nav-link">About Coach</a>
-                {% else %}
-                    <a href="#features" class="nav-link">Why Choose Us</a>
-                    <a href="#plans" class="nav-link">Training Plans</a>
+                {% if session.get('role') != 'admin' %}
+                    {% if session.get('user_name') %}
+                        <a href="/" class="nav-link">Dashboard</a>
+                        <a href="/my-bookings" class="nav-link">Bookings</a>
+                        <a href="/payments" class="nav-link">Payments</a>
+                        {% if session.get('role') != 'trainer' %}
+                        <a href="/booking" class="nav-link">Book Session</a>
+                        {% endif %}
+                        {% if session.get('role') == 'trainer' %}
+                        <a href="{{ url_for('about_trainer') }}" class="nav-link">Update My Profile</a>
+                        {% else %}
+                        <a href="{{ url_for('about_trainer') }}" class="nav-link">About Coach</a>
+                        {% endif %}
+                    {% else %}
+                        <a href="#features" class="nav-link">Why Choose Us</a>
+                        <a href="#plans" class="nav-link">Training Plans</a>
+                    {% endif %}
                 {% endif %}
             </nav>
             
             <!-- Desktop Right Profile Badge / Login -->
             <div class="desktop-right-nav animate-fade-in" style="display: flex; align-items: center; gap: 1rem;">
                 {% if session.get('user_name') %}
+                    <!-- Notification Bell (Global) -->
+                    {% if session.get('role') != 'admin' %}
+                    <div style="position: relative; cursor: pointer; color: var(--color-text-secondary); margin-right: 0.5rem;" data-bs-toggle="modal" data-bs-target="#notificationsModal">
+                        <i class="fa-solid fa-bell" style="font-size: 1.15rem;"></i>
+                        {% if notification_count is defined and notification_count > 0 %}
+                        <span style="position: absolute; top: -5px; right: -8px; background: var(--color-danger); color: white; font-size: 0.6rem; font-weight: bold; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">{{ notification_count }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
                     <!-- Profile initials dropdown trigger -->
                     <div class="dropdown">
-                        <a href="#" class="user-avatar-badge dropdown-toggle" id="avatarDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
-                            {{ session.get('user_name')[0]|upper }}
+                        <a href="#" class="{% if session.get('role') != 'admin' %}user-avatar-badge{% endif %} dropdown-toggle" id="avatarDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; {% if session.get('role') == 'admin' %}background: transparent; color: white; display: flex; align-items: center; gap: 0.75rem;{% endif %}">
+                            {% if session.get('role') == 'admin' %}
+                                <div style="text-align: right;" class="d-none d-sm-block text-white">
+                                    <div style="font-weight: 700; font-size: 0.9rem; line-height: 1.2;">Super Admin</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">admin@swimtrackpro.com</div>
+                                </div>
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: white;">
+                                    👑
+                                </div>
+                            {% else %}
+                                {{ session.get('user_name')[0]|upper }}
+                            {% endif %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="avatarDropdown">
                             <li style="padding: 0.5rem 1rem;"><span class="text-secondary small">Logged in as: <strong class="text-white">{{ session.get('user_name')|title }}</strong></span></li>
                             <li><hr class="dropdown-divider" style="border-color: rgba(255, 255, 255, 0.08);"></li>
+                            {% if session.get('role') != 'admin' %}
                             <li><a class="dropdown-item" href="#" onclick="showMyIdCard(); return false;"><i class="fa-solid fa-id-card me-2"></i> My ID</a></li>
                             <li><a class="dropdown-item" href="/help"><i class="fa-solid fa-headset me-2"></i> Help & Contact</a></li>
                             <li><hr class="dropdown-divider" style="border-color: rgba(255, 255, 255, 0.08);"></li>
+                            {% endif %}
                             <li><a class="dropdown-item text-danger" href="/logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Sign Out</a></li>
                         </ul>
                     </div>
@@ -184,32 +269,7 @@
                 {% endif %}
             </div>
             
-            <!-- Mobile Menu Dropdown -->
-            <div class="mobile-dropdown-container">
-                <div class="dropdown">
-                    <button class="btn btn-outline dropdown-toggle" type="button" id="mobileMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border-color: rgba(255,255,255,0.15); color: white; padding: 0.4rem 1rem;">
-                        <i class="fa-solid fa-bars"></i> Menu
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="mobileMenuDropdown">
-                        {% if session.get('user_name') %}
-                            <li style="padding: 0.5rem 1rem;"><span class="text-secondary small">Logged in as: <strong class="text-white">{{ session.get('user_name')|title }}</strong></span></li>
-                            <li><hr class="dropdown-divider" style="border-color: rgba(255, 255, 255, 0.08);"></li>
-                            <li><a class="dropdown-item" href="/my-bookings"><i class="fa-solid fa-clipboard-list me-2"></i> Bookings</a></li>
-                            <li><a class="dropdown-item" href="/booking"><i class="fa-solid fa-calendar-plus me-2"></i> Book Session</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('about_trainer') }}"><i class="fa-solid fa-user-tie me-2"></i> About Coach</a></li>
-                            <li><hr class="dropdown-divider" style="border-color: rgba(255, 255, 255, 0.08);"></li>
-                            <li><a class="dropdown-item" href="#" onclick="showMyIdCard(); return false;"><i class="fa-solid fa-id-card me-2"></i> My ID</a></li>
-                            <li><a class="dropdown-item" href="/help"><i class="fa-solid fa-headset me-2"></i> Help & Contact</a></li>
-                            <li><a class="dropdown-item text-danger" href="/logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Sign Out</a></li>
-                        {% else %}
-                            <li><a class="dropdown-item" href="#features">Why Choose Us</a></li>
-                            <li><a class="dropdown-item" href="#plans">Training Plans</a></li>
-                            <li><hr class="dropdown-divider" style="border-color: rgba(255, 255, 255, 0.08);"></li>
-                            <li><a class="dropdown-item text-primary" href="#" onclick="openLoginModal(); return false;"><i class="fa-solid fa-right-to-bracket me-2"></i> Login / Register</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
+            <!-- Mobile Menu Dropdown Removed as requested -->
             
         </div>
     </header>
@@ -221,15 +281,8 @@
     </main>
     
     {% block footer %}
-    <!-- Footer -->
-    <footer style="margin-top: auto; padding: 3rem 0; border-top: 1px solid rgba(255,255,255,0.08); background: #000; color: var(--color-text-muted); font-size: 0.9rem; text-align: center;">
-        <div class="container">
-            <div class="logo justify-center mb-4" style="opacity: 0.5;">
-                <i class="fa-solid fa-water"></i> SwimTrackPro
-            </div>
-            <p>© 2026 SwimTrackPro. Built for excellence.</p>
-        </div>
-    </footer>
+    <!-- Footer Component -->
+    {% include 'components/footer.html' %}
     {% endblock %}
 
     {% if session.get('user_name') %}
@@ -241,7 +294,7 @@
         // Set active state on navbar links based on current location
         document.addEventListener('DOMContentLoaded', () => {
             const currentPath = window.location.pathname;
-            document.querySelectorAll('.nav-links .nav-link').forEach(link => {
+            document.querySelectorAll('.nav-links .nav-link, .mobile-bottom-nav .nav-item').forEach(link => {
                 const href = link.getAttribute('href');
                 if (href === currentPath || (href === '/' && currentPath === '')) {
                     link.classList.add('active');
@@ -250,32 +303,67 @@
                 }
             });
             
-            // Vanilla JS toggle fallback to guarantee dropdown menu clicking behavior
-            const dropdowns = document.querySelectorAll('.dropdown');
-            dropdowns.forEach(dropdown => {
-                const toggle = dropdown.querySelector('.dropdown-toggle');
-                const menu = dropdown.querySelector('.dropdown-menu');
-                if (toggle && menu) {
-                    toggle.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        // Close other open dropdowns first
-                        document.querySelectorAll('.dropdown-menu.show').forEach(openMenu => {
-                            if (openMenu !== menu) openMenu.classList.remove('show');
-                        });
-                        menu.classList.toggle('show');
-                    });
+            // Fallback JS removed to allow Bootstrap JS to manage dropdowns.
+            // Global Loading Spinner for all form submissions
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]') || 
+                                  document.querySelector(`button[type="submit"][form="${form.id}"], input[type="submit"][form="${form.id}"]`);
+                
+                if (submitBtn) {
+                    if (submitBtn.innerHTML.includes('fa-spinner') || submitBtn.value === 'Processing...') return;
+                    
+                    const isInput = submitBtn.tagName === 'INPUT';
+                    const originalText = isInput ? submitBtn.value : (submitBtn.innerText || 'Processing...');
+                    
+                    if (isInput) {
+                        submitBtn.value = 'Processing...';
+                    } else {
+                        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> ' + originalText.trim();
+                    }
+                    submitBtn.style.opacity = '0.7';
+                    submitBtn.style.pointerEvents = 'none';
                 }
             });
-            
-            // Close dropdowns when clicking anywhere outside
-            document.addEventListener('click', () => {
-                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-                    menu.classList.remove('show');
-                });
-            });
         });
+
+        // Global fallback for opening the login modal
+        function openLoginModal() {
+            if (typeof myModal !== 'undefined' && myModal) {
+                myModal.show();
+            } else {
+                window.location.href = '/?login=true';
+            }
+        }
     </script>
+    <!-- Mobile Bottom Navigation -->
+    {% if session.get('user_name') and session.get('role') != 'admin' %}
+    <nav class="mobile-bottom-nav">
+        <a href="/" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/my-bookings" class="nav-item">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span>Bookings</span>
+        </a>
+        <a href="/payments" class="nav-item">
+            <i class="fa-solid fa-credit-card"></i>
+            <span>Payments</span>
+        </a>
+        {% if session.get('role') != 'trainer' %}
+            <a href="/booking" class="nav-item">
+                <i class="fa-solid fa-calendar-plus"></i>
+                <span>Book Session</span>
+            </a>
+        {% endif %}
+        <a href="{{ url_for('about_trainer') }}" class="nav-item">
+            <i class="fa-solid fa-user-tie"></i>
+            <span>{% if session.get('role') == 'trainer' %}Profile{% else %}Coach{% endif %}</span>
+        </a>
+    </nav>
+    {% endif %}
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

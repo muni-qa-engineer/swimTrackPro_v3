@@ -163,8 +163,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const startDate = new Date(booking.start_date);
-            const endDate = new Date(booking.end_date || booking.start_date);
+            const startDateRaw = booking.start_date || booking.created_at;
+            if (!startDateRaw) {
+                console.warn("Booking missing start_date:", booking);
+                return;
+            }
+
+            const startDate = new Date(startDateRaw);
+            const endDate = new Date(booking.end_date || startDateRaw);
+
+            if (isNaN(startDate.getTime())) {
+                console.warn("Invalid start_date for booking:", booking);
+                return;
+            }
 
             const selectedDays = (booking.selected_days || '')
                 .split(',')
@@ -173,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const current = new Date(startDate);
 
-            while (current <= endDate) {
+            while (current <= endDate && !isNaN(current.getTime())) {
                 const dayName = current.toLocaleDateString('en-US', {
                     weekday: 'long'
                 }).toLowerCase();
@@ -432,13 +443,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const gridEl = document.getElementById('calendarGrid');
         const mobileEl = document.getElementById('mobileCalendarView');
         if (!gridEl || !mobileEl) return;
-        if (isMobile()) {
-            gridEl.style.display = 'none';
-            mobileEl.style.display = 'block';
-        } else {
-            gridEl.style.display = 'grid';
-            mobileEl.style.display = 'none';
-        }
+        
+        // Always show the grid, even on mobile
+        gridEl.style.display = 'grid';
+        mobileEl.style.display = 'none';
     }
 
     renderCalendar(today.getFullYear(), today.getMonth());

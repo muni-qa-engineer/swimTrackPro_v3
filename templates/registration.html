@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <title>SwimTrackPro | Coach Registration</title>
     <style>
         :root {
@@ -34,7 +35,7 @@
             margin: 0;
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
             font-family: var(--font-sans);
             background-color: var(--color-background);
@@ -322,6 +323,8 @@
             </form>
         </div>
     </div>
+    
+    {% include 'components/footer.html' %}
 
     <script>
         function togglePasswordVisibility(inputId, btn) {

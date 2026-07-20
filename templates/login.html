@@ -6,7 +6,7 @@
 <header class="site-header">
     <div class="container nav-container">
         <a href="/" class="logo animate-fade-in">
-            <i class="fa-solid fa-water"></i> SwimTrackPro
+            <i class="fa-solid fa-water logo-icon"></i> SwimTrackPro
         </a>
         
         <nav class="nav-links animate-fade-in">
@@ -19,9 +19,13 @@
             {% endif %}
         </nav>
         
-        <button class="mobile-toggle" onclick="openLoginModal()">
-            <i class="fa-solid fa-user"></i>
-        </button>
+        {% if session.get('user_name') %}
+            <a href="/logout" class="btn btn-outline-danger btn-sm d-lg-none" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: var(--radius-sm);">Logout</a>
+        {% else %}
+            <button class="btn btn-primary btn-sm d-lg-none" onclick="openLoginModal()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: var(--radius-sm);">
+                Login / Register
+            </button>
+        {% endif %}
     </div>
 </header>
 {% endblock %}
@@ -239,6 +243,206 @@
     </div>
 </div>
 
+<!-- What You Will Get Section -->
+<div class="what-you-get-section" id="what-you-get">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="font-display text-white" style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">What You Will Get</h2>
+            <p class="text-muted">Explore the outcomes for your specific skill level.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-5">
+            <!-- Beginner Card -->
+            <div class="level-card" onclick="openLevelModal('beginner')">
+                <div class="level-icon"><i class="fa-solid fa-water"></i></div>
+                <h3 class="font-display">I'm a Beginner</h3>
+                <p>Starting from scratch? Learn the basics of water safety and floating.</p>
+                <button class="btn btn-outline-primary mt-3 btn-sm px-4">View Outcomes</button>
+            </div>
+            
+            <!-- Intermediate Card -->
+            <div class="level-card" onclick="openLevelModal('intermediate')">
+                <div class="level-icon"><i class="fa-solid fa-swimmer"></i></div>
+                <h3 class="font-display">I'm at Intermediate</h3>
+                <p>Know the basics? Master different strokes and underwater swimming.</p>
+                <button class="btn btn-outline-primary mt-3 btn-sm px-4">View Outcomes</button>
+            </div>
+            
+            <!-- Regular Card -->
+            <div class="level-card" onclick="openLevelModal('regular')">
+                <div class="level-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                <h3 class="font-display">I'm Regular</h3>
+                <p>Swimming daily? Refine your strokes, build endurance, and track laps.</p>
+                <button class="btn btn-outline-primary mt-3 btn-sm px-4">View Outcomes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals for Swimmer Levels -->
+<div class="modal fade" id="levelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: var(--color-surface); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: var(--backdrop-blur);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title font-display text-white fw-bold fs-3" id="levelModalTitle">Title</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pb-4">
+                <!-- Carousel -->
+                <div id="levelCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+                    <div class="carousel-inner" id="levelCarouselInner" style="border-radius: var(--radius-md); overflow: hidden; height: 350px;">
+                        <!-- Dynamic images injected here -->
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#levelCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#levelCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                
+                <!-- Content -->
+                <div class="level-content text-white" id="levelModalContent">
+                    <!-- Dynamic content injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .level-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: var(--radius-md);
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    .level-card:hover {
+        transform: translateY(-5px);
+        background: rgba(6, 182, 212, 0.05);
+        border-color: rgba(6, 182, 212, 0.3);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .level-icon {
+        font-size: 3rem;
+        color: var(--color-primary);
+        margin-bottom: 1.5rem;
+    }
+    .level-card h3 {
+        color: white;
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+    .level-card p {
+        color: var(--color-text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 0;
+    }
+    .carousel-item img {
+        object-fit: cover;
+        height: 350px;
+        width: 100%;
+    }
+    .level-content ul {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+    .level-content ul li {
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        color: rgba(255,255,255,0.9);
+    }
+    .level-content ul li i {
+        color: var(--color-primary);
+        margin-top: 0.25rem;
+        font-size: 1.2rem;
+    }
+</style>
+
+<script>
+    const levelData = {
+        beginner: {
+            title: "I'm a Beginner",
+            images: [
+                "/static/images/beginner_bubbling.jpg",
+                "/static/images/beginner_walking.jpg",
+                "/static/images/beginner_floating.jpg",
+                "/static/images/beginner_kicking.jpg"
+            ],
+            content: `
+                <ul>
+                    <li><i class="fa-solid fa-check-circle"></i> You will feel completely comfortable with water.</li>
+                    <li><i class="fa-solid fa-check-circle"></i> You will learn how to float effortlessly.</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Learn to swim at least 1 style during a period of 2 months.</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Master essential floating techniques.</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Acquire basic life-saving skills.</li>
+                </ul>
+            `
+        },
+        intermediate: {
+            title: "I'm at Intermediate",
+            images: [
+                "/static/images/intermediate_underwater.jpg",
+                "/static/images/intermediate_strokes.jpg",
+                "/static/images/intermediate_diving.jpg"
+            ],
+            content: `
+                <ul>
+                    <li><i class="fa-solid fa-check-circle"></i> Master different styles of swimming (Freestyle, Backstroke, etc).</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Undergo professional stroke corrections for better efficiency.</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Learn proper and safe diving techniques.</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Master underwater swimming and breath control.</li>
+                </ul>
+            `
+        },
+        regular: {
+            title: "I'm Regular",
+            images: [
+                "/static/images/regular_correction.jpg",
+                "/static/images/regular_lane.jpg",
+                "/static/images/regular_timing.jpg"
+            ],
+            content: `
+                <ul>
+                    <li><i class="fa-solid fa-check-circle"></i> Advanced stroke corrections and microscopic technique refinements.</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Expert suggestions and drills for building stamina and endurance.</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Dedicated support, coaching, and training for competitions.</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Keep strict track of your progress in terms of timing and lap counts.</li>
+                </ul>
+            `
+        }
+    };
+
+    function openLevelModal(level) {
+        const data = levelData[level];
+        document.getElementById('levelModalTitle').innerText = data.title;
+        
+        let carouselHtml = '';
+        data.images.forEach((img, index) => {
+            const activeClass = index === 0 ? 'active' : '';
+            carouselHtml += `<div class="carousel-item ${activeClass}">
+                                <img src="${img}" class="d-block w-100" alt="Swimmer">
+                             </div>`;
+        });
+        document.getElementById('levelCarouselInner').innerHTML = carouselHtml;
+        document.getElementById('levelModalContent').innerHTML = data.content;
+        
+        const modalEl = document.getElementById('levelModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+</script>
+
 <!-- Comparison Layout Section -->
 <div class="plans-section" id="plans">
     <div class="container">
@@ -247,85 +451,343 @@
             <p class="text-muted">Private training plans tailored to your personal pool schedule.</p>
         </div>
         
-        <div class="comparison-wrapper">
-            <div style="overflow-x: auto;">
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th style="text-align: left; padding-left: 1.5rem; width: 25%;">Coaching Feature</th>
-                            <th style="width: 18.75%;">Demo Session</th>
-                            <th style="width: 18.75%;">Single Class</th>
-                            <th style="width: 18.75%; color: var(--color-primary);">Monthly Coach</th>
-                            <th style="width: 18.75%;">Custom Duration</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="feature-name">Coaching Fee</td>
-                            <td>₹500 <span class="small text-muted">/ session</span></td>
-                            <td>₹750 <span class="small text-muted">/ session</span></td>
-                            <td class="text-white fw-bold">₹6,000 <span class="small text-muted">/ month</span></td>
-                            <td>Dynamic pricing</td>
-                        </tr>
-                        <tr>
-                            <td class="feature-name">Pool Facility</td>
-                            <td colspan="4" class="text-white text-center">Provided by Swimmer (At Your Villa, Apartment, or Club)</td>
-                        </tr>
-                        <tr>
-                            <td class="feature-name">Coaching Staff</td>
-                            <td>Assigned Trainer</td>
-                            <td>Selectable Coach</td>
-                            <td class="text-white">Preferred Coach</td>
-                            <td>Flexible selection</td>
-                        </tr>
-                        <tr>
-                            <td class="feature-name">Class Duration</td>
-                            <td>1 Session</td>
-                            <td>Flexible Single Day</td>
-                            <td class="text-white">1 Month Recurring</td>
-                            <td>Up to 60 Days Max</td>
-                        </tr>
-                        <tr>
-                            <td class="feature-name">Weekly Frequency</td>
-                            <td>Fixed 1 Class</td>
-                            <td>1 Class Booking</td>
-                            <td class="text-white">2 or 3 Days / week</td>
-                            <td>Up to 5 Days / week</td>
-                        </tr>
-                        <tr>
-                            <td class="feature-name">Skip & Makeup Credits</td>
-                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
-                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
-                            <td><i class="fa-solid fa-circle-check text-success"></i> Yes</td>
-                            <td><i class="fa-solid fa-circle-check text-success"></i> Yes</td>
-                        </tr>
-                        <tr>
-                            <td class="feature-name">Pause Subscription</td>
-                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
-                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
-                            <td><i class="fa-solid fa-circle-check text-success"></i> Yes (1 time)</td>
-                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
-                        </tr>
-                        <tr>
-                            <td class="feature-name">Multi-Person Discounts</td>
-                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
-                            <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
-                            <td class="text-white">Up to 21% off</td>
-                            <td>Up to 21% off</td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Demo</button></td>
-                            <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Single</button></td>
-                            <td><button class="btn btn-primary btn-sm px-4" onclick="openLoginModal()">Book Monthly</button></td>
-                            <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Configure</button></td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- Toggle Cards -->
+        <div class="row justify-content-center mb-5" style="position: sticky; top: 70px; z-index: 50; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(12px); padding-top: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); margin-left: -15px; margin-right: -15px;">
+            <div class="col-md-5 mb-3">
+                <div class="plan-toggle-card active" id="toggle-individual" onclick="togglePlanView('individual')">
+                    <div class="icon-wrap"><i class="fa-solid fa-person-swimming"></i></div>
+                    <h3>Individual Training</h3>
+                    <p>1-on-1 personalized coaching</p>
+                </div>
+            </div>
+            <div class="col-md-5 mb-3">
+                <div class="plan-toggle-card" id="toggle-group" onclick="togglePlanView('group')">
+                    <div class="icon-wrap"><i class="fa-solid fa-people-group"></i></div>
+                    <h3>Group Coaching</h3>
+                    <p>Up to 5 members (Expandable)</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- INDIVIDUAL VIEW -->
+        <div id="view-individual">
+            <div class="comparison-wrapper mb-5">
+                <div style="overflow-x: auto;">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; padding-left: 1.5rem; width: 25%;">Coaching Feature</th>
+                                <th style="width: 18.75%;">Demo</th>
+                                <th style="width: 18.75%;">Single Day</th>
+                                <th style="width: 18.75%; color: var(--color-primary);">Monthly Package</th>
+                                <th style="width: 18.75%;">Customize</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="feature-name">Coaching Fee</td>
+                                <td>₹{{ '{:,}'.format(pkg['individual']['demo'].final_price) }} {% if pkg['individual']['demo'].final_price == 0 %}(Free){% endif %} <span class="small text-muted">/ session</span></td>
+                                <td>₹{{ '{:,}'.format(pkg['individual']['single'].final_price) }} <span class="small text-muted">/ session</span></td>
+                                <td class="text-white fw-bold">₹{{ '{:,}'.format(pkg['individual']['monthly'].final_price) }} <span class="small text-muted">/ month</span></td>
+                                <td>Dynamic pricing</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Pool Facility</td>
+                                <td colspan="4" class="text-white text-center">Provided by Swimmer (At Your Villa, Apartment, or Club)</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Coaching Staff</td>
+                                <td>Assigned Trainer</td>
+                                <td>Selectable Coach</td>
+                                <td class="text-white">Preferred Coach</td>
+                                <td>Flexible selection</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Class Duration</td>
+                                <td>1hr / Session</td>
+                                <td>1hr / Session</td>
+                                <td class="text-white">1hr/day - Month Recurring</td>
+                                <td>Up to 60 Days Max</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Weekly Frequency</td>
+                                <td>Fixed 1 Class</td>
+                                <td>1 Class Booking</td>
+                                <td class="text-white">2 or 3 Days / week</td>
+                                <td>Up to 5 Days / week</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Skip & Makeup Credits</td>
+                                <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                                <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                                <td><i class="fa-solid fa-circle-check text-success"></i> Yes</td>
+                                <td><i class="fa-solid fa-circle-check text-success"></i> Yes</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Pause Subscription</td>
+                                <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                                <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                                <td><i class="fa-solid fa-circle-check text-success"></i> Yes (1 time)</td>
+                                <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Multi-Person Discounts</td>
+                                <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                                <td><i class="fa-solid fa-circle-xmark text-danger"></i></td>
+                                <td class="text-white">Up to 21% off</td>
+                                <td>Up to 21% off</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Demo</button></td>
+                                <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Single</button></td>
+                                <td><button class="btn btn-primary btn-sm px-4" onclick="openLoginModal()">Book Monthly</button></td>
+                                <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Configure</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="text-center mb-4">
+                <h3 class="font-display text-white" style="font-weight: 700;">Long Term Coaching (Individual)</h3>
+                <p class="text-muted">Commit longer, save more.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- 3 Months -->
+                <div class="long-term-card">
+                    {% if pkg['individual']['3_months'].discount_percentage > 0 %}
+                    <div class="badge badge-primary mb-2" style="background: rgba(6,182,212,0.1); color: var(--color-primary); padding: 0.3rem 0.6rem;">{{ pkg['individual']['3_months'].discount_percentage }}% OFF</div>
+                    {% endif %}
+                    <h4>3 Months</h4>
+                    {% if pkg['individual']['3_months'].discount_percentage > 0 %}
+                    <div class="price-strike">₹{{ '{:,}'.format(pkg['individual']['3_months'].base_price) }}</div>
+                    {% endif %}
+                    <div class="price-actual mb-0">₹{{ '{:,}'.format(pkg['individual']['3_months'].final_price) }}</div>
+                </div>
+                <!-- 6 Months -->
+                <div class="long-term-card">
+                    {% if pkg['individual']['6_months'].discount_percentage > 0 %}
+                    <div class="badge badge-primary mb-2" style="background: rgba(6,182,212,0.1); color: var(--color-primary); padding: 0.3rem 0.6rem;">{{ pkg['individual']['6_months'].discount_percentage }}% OFF</div>
+                    {% endif %}
+                    <h4>6 Months</h4>
+                    {% if pkg['individual']['6_months'].discount_percentage > 0 %}
+                    <div class="price-strike">₹{{ '{:,}'.format(pkg['individual']['6_months'].base_price) }}</div>
+                    {% endif %}
+                    <div class="price-actual mb-0">₹{{ '{:,}'.format(pkg['individual']['6_months'].final_price) }}</div>
+                </div>
+                <!-- 9 Months -->
+                <div class="long-term-card">
+                    {% if pkg['individual']['9_months'].discount_percentage > 0 %}
+                    <div class="badge badge-primary mb-2" style="background: rgba(6,182,212,0.1); color: var(--color-primary); padding: 0.3rem 0.6rem;">{{ pkg['individual']['9_months'].discount_percentage }}% OFF</div>
+                    {% endif %}
+                    <h4>9 Months</h4>
+                    {% if pkg['individual']['9_months'].discount_percentage > 0 %}
+                    <div class="price-strike">₹{{ '{:,}'.format(pkg['individual']['9_months'].base_price) }}</div>
+                    {% endif %}
+                    <div class="price-actual mb-0">₹{{ '{:,}'.format(pkg['individual']['9_months'].final_price) }}</div>
+                </div>
+                <!-- 1 Year -->
+                <div class="long-term-card">
+                    {% if pkg['individual']['12_months'].discount_percentage > 0 %}
+                    <div class="badge badge-primary mb-2" style="background: rgba(6,182,212,0.1); color: var(--color-primary); padding: 0.3rem 0.6rem;">{{ pkg['individual']['12_months'].discount_percentage }}% OFF</div>
+                    {% endif %}
+                    <h4>1 Year</h4>
+                    {% if pkg['individual']['12_months'].discount_percentage > 0 %}
+                    <div class="price-strike">₹{{ '{:,}'.format(pkg['individual']['12_months'].base_price) }}</div>
+                    {% endif %}
+                    <div class="price-actual mb-0">₹{{ '{:,}'.format(pkg['individual']['12_months'].final_price) }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- GROUP VIEW -->
+        <div id="view-group" style="display: none;">
+            <div class="comparison-wrapper mb-5">
+                <div style="overflow-x: auto;">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; padding-left: 1.5rem; width: 25%;">Coaching Feature</th>
+                                <th style="width: 18.75%;">Demo (Group)</th>
+                                <th style="width: 18.75%;">Single Day (Group)</th>
+                                <th style="width: 18.75%; color: var(--color-primary);">Monthly Package (Group)</th>
+                                <th style="width: 18.75%;">Customize (Group)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="feature-name">Coaching Fee</td>
+                                <td>₹{{ '{:,}'.format(pkg['group']['demo'].final_price) }} {% if pkg['group']['demo'].final_price == 0 %}(Free){% endif %} <span class="small text-muted">/ session</span></td>
+                                <td>₹{{ '{:,}'.format(pkg['group']['single'].final_price) }} <span class="small text-muted">/ session</span></td>
+                                <td class="text-white fw-bold">₹{{ '{:,}'.format(pkg['group']['monthly'].final_price) }} <span class="small text-muted">/ month</span></td>
+                                <td>Dynamic pricing</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Max Members</td>
+                                <td>Up to 5 (Add more for extra fee)</td>
+                                <td>Up to 5 (Add more for extra fee)</td>
+                                <td class="text-white">Up to 5 (Add more for extra fee)</td>
+                                <td>Flexible selection</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Pool Facility</td>
+                                <td colspan="4" class="text-white text-center">Provided by Swimmers (At Your Villa, Apartment, or Club)</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Coaching Staff</td>
+                                <td>Assigned Trainer</td>
+                                <td>Selectable Coach</td>
+                                <td class="text-white">Preferred Coach</td>
+                                <td>Flexible selection</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Demo</button></td>
+                                <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Book Single</button></td>
+                                <td><button class="btn btn-primary btn-sm px-4" onclick="openLoginModal()">Book Monthly</button></td>
+                                <td><button class="btn btn-secondary btn-sm px-4" onclick="openLoginModal()">Configure</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="text-center mb-4">
+                <h3 class="font-display text-white" style="font-weight: 700;">Long Term Coaching (Group)</h3>
+                <p class="text-muted">Commit longer, save more as a group.</p>
+                <p class="text-warning small mb-0">*Note: Prices shown are placeholders pending confirmation.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- 3 Months -->
+                <div class="long-term-card">
+                    {% if pkg['group']['3_months'].discount_percentage > 0 %}
+                    <div class="badge badge-primary mb-2" style="background: rgba(6,182,212,0.1); color: var(--color-primary); padding: 0.3rem 0.6rem;">{{ pkg['group']['3_months'].discount_percentage }}% OFF</div>
+                    {% endif %}
+                    <h4>3 Months</h4>
+                    {% if pkg['group']['3_months'].discount_percentage > 0 %}
+                    <div class="price-strike">₹{{ '{:,}'.format(pkg['group']['3_months'].base_price) }}</div>
+                    {% endif %}
+                    <div class="price-actual mb-0">₹{{ '{:,}'.format(pkg['group']['3_months'].final_price) }}</div>
+                </div>
+                <!-- 6 Months -->
+                <div class="long-term-card">
+                    {% if pkg['group']['6_months'].discount_percentage > 0 %}
+                    <div class="badge badge-primary mb-2" style="background: rgba(6,182,212,0.1); color: var(--color-primary); padding: 0.3rem 0.6rem;">{{ pkg['group']['6_months'].discount_percentage }}% OFF</div>
+                    {% endif %}
+                    <h4>6 Months</h4>
+                    {% if pkg['group']['6_months'].discount_percentage > 0 %}
+                    <div class="price-strike">₹{{ '{:,}'.format(pkg['group']['6_months'].base_price) }}</div>
+                    {% endif %}
+                    <div class="price-actual mb-0">₹{{ '{:,}'.format(pkg['group']['6_months'].final_price) }}</div>
+                </div>
+                <!-- 9 Months -->
+                <div class="long-term-card">
+                    {% if pkg['group']['9_months'].discount_percentage > 0 %}
+                    <div class="badge badge-primary mb-2" style="background: rgba(6,182,212,0.1); color: var(--color-primary); padding: 0.3rem 0.6rem;">{{ pkg['group']['9_months'].discount_percentage }}% OFF</div>
+                    {% endif %}
+                    <h4>9 Months</h4>
+                    {% if pkg['group']['9_months'].discount_percentage > 0 %}
+                    <div class="price-strike">₹{{ '{:,}'.format(pkg['group']['9_months'].base_price) }}</div>
+                    {% endif %}
+                    <div class="price-actual mb-0">₹{{ '{:,}'.format(pkg['group']['9_months'].final_price) }}</div>
+                </div>
+                <!-- 1 Year -->
+                <div class="long-term-card">
+                    {% if pkg['group']['12_months'].discount_percentage > 0 %}
+                    <div class="badge badge-primary mb-2" style="background: rgba(6,182,212,0.1); color: var(--color-primary); padding: 0.3rem 0.6rem;">{{ pkg['group']['12_months'].discount_percentage }}% OFF</div>
+                    {% endif %}
+                    <h4>1 Year</h4>
+                    {% if pkg['group']['12_months'].discount_percentage > 0 %}
+                    <div class="price-strike">₹{{ '{:,}'.format(pkg['group']['12_months'].base_price) }}</div>
+                    {% endif %}
+                    <div class="price-actual mb-0">₹{{ '{:,}'.format(pkg['group']['12_months'].final_price) }}</div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .plan-toggle-card {
+        background: rgba(255,255,255,0.02);
+        border: 2px solid rgba(255,255,255,0.05);
+        border-radius: var(--radius-md);
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    .plan-toggle-card:hover {
+        background: rgba(255,255,255,0.05);
+        transform: translateY(-5px);
+    }
+    .plan-toggle-card.active {
+        border-color: var(--color-primary);
+        background: rgba(6, 182, 212, 0.1);
+        box-shadow: 0 10px 30px rgba(6, 182, 212, 0.15);
+    }
+    .plan-toggle-card .icon-wrap {
+        font-size: 2.5rem;
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+    }
+    .plan-toggle-card h3 {
+        color: white;
+        font-family: var(--font-display);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .plan-toggle-card p {
+        color: var(--color-text-secondary);
+        margin-bottom: 0;
+        font-size: 0.95rem;
+    }
+    
+    .long-term-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: var(--radius-sm);
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .long-term-card:hover {
+        border-color: rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.05);
+    }
+    .long-term-card h4 {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    .long-term-card .price-strike {
+        text-decoration: line-through;
+        color: var(--color-text-secondary);
+        font-size: 1rem;
+    }
+    .long-term-card .price-actual {
+        color: var(--color-primary);
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+</style>
+<script>
+    function togglePlanView(view) {
+        document.getElementById('toggle-individual').classList.remove('active');
+        document.getElementById('toggle-group').classList.remove('active');
+        
+        document.getElementById('view-individual').style.display = 'none';
+        document.getElementById('view-group').style.display = 'none';
+        
+        document.getElementById('toggle-' + view).classList.add('active');
+        document.getElementById('view-' + view).style.display = 'block';
+    }
+</script>
 
 <!-- Modal login overlay -->
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
@@ -415,6 +877,9 @@
     let myModal;
     
     document.addEventListener('DOMContentLoaded', () => {
+        // Clear greeted state so it shows up on next login
+        sessionStorage.clear();
+        
         myModal = new bootstrap.Modal(document.getElementById('loginModal'));
         
         // Auto show modal if there is a failed message in URL or session flash
@@ -521,16 +986,16 @@
     trainerBtn.addEventListener('click', activateTrainerMode);
     guestBtn.addEventListener('click', activateGuestMode);
 
-    const logoIcon = document.querySelector('.logo-icon');
-    if (logoIcon) {
-        logoIcon.addEventListener('dblclick', function() {
+    const logoIcons = document.querySelectorAll('.logo-icon');
+    logoIcons.forEach(icon => {
+        icon.addEventListener('dblclick', function() {
             if (roleInput.value === 'admin') {
                 activateGuestMode();
             } else {
                 activateAdminMode();
             }
         });
-    }
+    });
 
     if (phoneInput) {
         phoneInput.addEventListener('input', () => {
@@ -561,6 +1026,16 @@
                 return;
             }
         }
+        
+        // Show spinner and disable button on successful validation
+        const submitSpan = submitBtn.querySelector('span');
+        if (submitSpan) {
+            submitSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
+        } else {
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
+        }
+        submitBtn.style.pointerEvents = 'none';
+        submitBtn.style.opacity = '0.8';
     });
 
     window.addEventListener('load', () => {

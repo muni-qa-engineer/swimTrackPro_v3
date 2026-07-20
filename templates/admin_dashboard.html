@@ -112,10 +112,10 @@
 <div class="dashboard-container">
     
     <!-- Main Content Panel -->
-    <main class="admin-main animate-fade-in" style="flex: 1; padding: 2rem; overflow-y: auto;">
+    <main class="admin-main animate-fade-in" style="flex: 1; padding: 2rem;">
         
         <!-- Horizontal Tab Bar (Replaces Sidebar) -->
-        <div class="glass-panel mb-4" id="adminHorizontalTabs" style="padding: 0.75rem; overflow-x: auto; display: flex; gap: 0.75rem; flex-wrap: nowrap; white-space: nowrap; border-radius: var(--radius-sm);">
+        <div class="glass-panel mb-4" id="adminHorizontalTabs" style="position: sticky; top: 75px; z-index: 40; padding: 0.75rem; overflow-x: auto; display: flex; gap: 0.75rem; flex-wrap: nowrap; white-space: nowrap; border-radius: var(--radius-sm);">
             <button class="btn btn-primary py-2 px-4 admin-tab-btn" onclick="switchSection('dashboard', this)" style="border-radius: var(--radius-sm);">Dashboard</button>
             <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('bookings', this)" style="border-radius: var(--radius-sm);">Bookings</button>
             <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('students', this)" style="border-radius: var(--radius-sm);">Students</button>
@@ -123,6 +123,7 @@
             <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('sessions', this)" style="border-radius: var(--radius-sm);">Sessions</button>
             <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('payments', this)" style="border-radius: var(--radius-sm);">Payments</button>
             <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('reports', this)" style="border-radius: var(--radius-sm);">Reports</button>
+            <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('pricing', this)" style="border-radius: var(--radius-sm);">Pricing</button>
             <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="switchSection('settings', this)" style="border-radius: var(--radius-sm);">Settings</button>
             <button class="btn btn-secondary py-2 px-4 admin-tab-btn" onclick="showMyIdCard()" style="border-radius: var(--radius-sm);">My ID Card</button>
         </div>
@@ -132,27 +133,30 @@
         <!-- Header -->
         <div class="flex justify-between items-center mb-6" style="flex-wrap: wrap; gap: 1rem;">
             <h2 class="font-display text-primary" style="font-size: 2rem; margin: 0;" id="pageTitle">Dashboard</h2>
-            
-            <div class="flex items-center gap-3">
-                <div style="text-align: right;" class="d-none d-sm-block">
-                    <div style="font-weight: 700;">Super Admin</div>
-                    <div class="text-muted" style="font-size: 0.8rem;">admin@swimtrackpro.com</div>
-                </div>
-                <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
-                    👑
-                </div>
-            </div>
         </div>
 
-        <!-- Alert Notifications -->
+        <!-- Alert Notifications (Floating) -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
+                <div id="floating-alerts" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; max-width: 90vw; width: max-content;">
                 {% for category, message in messages %}
-                    <div class="glass-panel animate-fade-in" style="padding: 1rem 1.5rem; margin-bottom: 1.5rem; border-color: rgba(6, 182, 212, 0.3); display: flex; align-items: center; justify-content: space-between;">
-                        <span class="text-primary"><i class="fa-solid fa-circle-info me-2"></i> {{ message }}</span>
-                        <button type="button" class="btn-close btn-close-white" onclick="this.parentElement.remove()"></button>
+                    <div class="toast-alert glass-panel animate-fade-in" style="padding: 1rem 1.5rem; border-left: 4px solid var(--color-primary); background: rgba(10, 10, 10, 0.95); display: flex; align-items: center; justify-content: space-between; box-shadow: 0 15px 35px rgba(0,0,0,0.6); border-radius: 8px;">
+                        <span class="text-white" style="font-weight: 500;"><i class="fa-solid fa-circle-info text-primary me-2"></i> {{ message }}</span>
+                        <button type="button" class="btn-close btn-close-white ms-4" onclick="this.parentElement.remove()" style="opacity: 0.5;"></button>
                     </div>
                 {% endfor %}
+                </div>
+                <script>
+                    setTimeout(() => {
+                        const alerts = document.querySelectorAll('.toast-alert');
+                        alerts.forEach(alert => {
+                            alert.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                            alert.style.opacity = '0';
+                            alert.style.transform = 'translateY(10px)';
+                            setTimeout(() => alert.remove(), 500);
+                        });
+                    }, 2000);
+                </script>
             {% endif %}
         {% endwith %}
 
@@ -259,7 +263,17 @@
                     <div class="glass-panel" style="padding: 1.5rem;">
                         <div class="flex justify-between items-center mb-3">
                             <h3 class="font-display" style="font-size: 1.25rem; margin: 0;">Bookings Overview</h3>
-                            <span class="badge badge-info">Weekly</span>
+                            <div class="dropdown">
+                                <button class="btn btn-outline btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="chartViewBtn" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; color: var(--color-text-secondary); border-color: rgba(255,255,255,0.1);">
+                                    Weekly
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" style="min-width: 120px;">
+                                    <li><a class="dropdown-item" href="#" onclick="updateChartData('daily'); return false;">Daily</a></li>
+                                    <li><a class="dropdown-item active" href="#" onclick="updateChartData('weekly'); return false;">Weekly</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateChartData('monthly'); return false;">Monthly</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateChartData('yearly'); return false;">Yearly</a></li>
+                                </ul>
+                            </div>
                         </div>
                         <div style="position: relative; height: 200px;">
                             <canvas id="bookingsChart"></canvas>
@@ -267,10 +281,10 @@
                     </div>
                 </div>
 
-                <!-- Bottom Section: Recent Bookings & Quick Actions -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Bottom Section: Recent Bookings -->
+                <div class="grid grid-cols-1 gap-6">
                     <!-- Recent Bookings Table -->
-                    <div class="glass-panel lg:col-span-2" style="padding: 1.5rem;">
+                    <div class="glass-panel" style="padding: 1.5rem;">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-display" style="font-size: 1.25rem; margin: 0;">Recent Bookings</h3>
                             <a href="#" class="text-primary small" onclick="switchSection('bookings')">View All</a>
@@ -309,27 +323,6 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions Panel -->
-                    <div class="glass-panel" style="padding: 1.5rem;">
-                        <h3 class="font-display" style="font-size: 1.25rem; margin-bottom: 1.25rem;">Quick Actions</h3>
-                        <div class="flex flex-col gap-3">
-                            <button class="btn btn-primary w-100 py-3 flex items-center gap-3" style="text-align: left; border-radius: var(--radius-md);" onclick="switchSection('coaches')">
-                                <i class="fa-solid fa-user-plus" style="font-size: 1.5rem;"></i>
-                                <div>
-                                    <div style="font-weight: 700;">Manage Approvals</div>
-                                    <div style="font-size: 0.75rem; font-weight: normal; opacity: 0.7;">Approve pending coaches</div>
-                                </div>
-                            </button>
-                            <button class="btn btn-secondary w-100 py-3 flex items-center gap-3" style="text-align: left; border-radius: var(--radius-md);" onclick="switchSection('bookings')">
-                                <i class="fa-solid fa-user-tie" style="font-size: 1.5rem;"></i>
-                                <div>
-                                    <div style="font-weight: 700;">Coach Assignment</div>
-                                    <div style="font-size: 0.75rem; font-weight: normal; opacity: 0.7;">Change coach mappings</div>
-                                </div>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -445,13 +438,24 @@
                                     <td>{{ student.owner_name|title }}</td>
                                     <td><i class="fa-solid fa-phone text-accent"></i> {{ student.owner_phone }}</td>
                                     <td class="text-end">
-                                        <button class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" data-bs-toggle="modal" data-bs-target="#editStudentModal-{{ loop.index }}">Edit</button>
-                                        <form method="POST" action="{{ url_for('toggle_block_student', phone=student.owner_phone) }}" class="d-inline">
+                                        <button class="btn btn-primary" style="padding: 0.35rem; width: 32px; height: 32px; font-size: 0.85rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center;" data-bs-toggle="modal" data-bs-target="#editStudentModal-{{ loop.index }}" title="Edit">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <form method="POST" action="{{ url_for('toggle_block_student', phone=student.owner_phone) }}" class="d-inline" onsubmit="return handleActionSubmit(this, 'Are you sure you want to {% if student.is_blocked %}unblock{% else %}block{% endif %} this student?')">
                                             {% if student.is_blocked %}
-                                                <button type="submit" class="btn btn-outline" style="border-color: var(--color-success); color: var(--color-success); padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" onclick="return confirm('Unblock this student?')">Unblock</button>
+                                                <button type="submit" class="btn btn-outline" style="border-color: var(--color-success); color: var(--color-success); padding: 0.35rem; width: 32px; height: 32px; font-size: 0.85rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center;" title="Unblock">
+                                                    <i class="fa-solid fa-unlock"></i>
+                                                </button>
                                             {% else %}
-                                                <button type="submit" class="btn btn-outline" style="border-color: var(--color-danger); color: var(--color-danger); padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full);" onclick="return confirm('Block and suspend this student?')">Block</button>
+                                                <button type="submit" class="btn btn-outline" style="border-color: var(--color-warning); color: var(--color-warning); padding: 0.35rem; width: 32px; height: 32px; font-size: 0.85rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center;" title="Block">
+                                                    <i class="fa-solid fa-ban"></i>
+                                                </button>
                                             {% endif %}
+                                        </form>
+                                        <form method="POST" action="{{ url_for('delete_student', phone=student.owner_phone) }}" class="d-inline" onsubmit="return handleActionSubmit(this, 'Are you sure you want to permanently delete this student? This action cannot be undone.')">
+                                            <button type="submit" class="btn btn-outline" style="border-color: var(--color-danger); color: var(--color-danger); padding: 0.35rem; width: 32px; height: 32px; font-size: 0.85rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center;" title="Delete">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
                                         </form>
                                     </td>
                                 </tr>
@@ -755,6 +759,62 @@
                 </div>
             </div>
 
+            <!-- SECTION: Pricing Plans -->
+            <div id="section-pricing" class="dashboard-section d-none">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-display" style="font-size: 1.25rem; margin: 0;">Pricing & Packages</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Package Name</th>
+                                    <th>Base Price (₹)</th>
+                                    <th>Discount (%)</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pkg in packages %}
+                                <tr>
+                                    <form id="form-pkg-{{ pkg.id }}" action="/admin/update_package" method="POST" onsubmit="
+                                        const btn = document.getElementById('btn-save-{{ pkg.id }}');
+                                        btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin\'></i>';
+                                        btn.style.opacity = '0.7';
+                                    "></form>
+                                    <td>
+                                        <span class="badge badge-secondary">{{ pkg.category|title }}</span>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 600;">{{ pkg.package_name|replace('_', ' ')|title }}</div>
+                                    </td>
+                                    <td>
+                                        <input type="number" form="form-pkg-{{ pkg.id }}" name="base_price" class="form-control form-control-sm" value="{{ pkg.base_price }}" style="width: 100px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                    </td>
+                                    <td>
+                                        <div class="input-group input-group-sm" style="width: 100px;">
+                                            <input type="number" form="form-pkg-{{ pkg.id }}" name="discount_percentage" class="form-control" value="{{ pkg.discount_percentage }}" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                            <span class="input-group-text" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: white;">%</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <input type="hidden" form="form-pkg-{{ pkg.id }}" name="package_id" value="{{ pkg.id }}">
+                                        <button type="submit" id="btn-save-{{ pkg.id }}" form="form-pkg-{{ pkg.id }}" class="btn btn-sm btn-primary"><i class="fa-solid fa-save"></i> Save</button>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">No packages found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- SECTION: Settings -->
             <div id="section-settings" class="dashboard-section d-none">
                 <div class="glass-panel" style="padding: 1.5rem;">
@@ -857,6 +917,37 @@
                         <div class="form-group">
                             <label class="form-label">Residence Location</label>
                             <input type="text" class="form-control" name="residence_location" value="{{ trainer.residence_location }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        
+                        <div class="col-span-1 md:col-span-2 mt-2 border-top border-secondary pt-3">
+                            <h6 class="text-primary mb-3">Rich Profile Overrides</h6>
+                        </div>
+                        
+                        <div class="form-group col-span-1 md:col-span-2">
+                            <label class="form-label">Bio (About Me)</label>
+                            <textarea class="form-control" name="bio" rows="3" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">{{ trainer.bio }}</textarea>
+                        </div>
+                        
+                        <div class="form-group col-span-1 md:col-span-2">
+                            <label class="form-label">Specialties (comma separated)</label>
+                            <input type="text" class="form-control" name="specialties" value="{{ trainer.specialties }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Instagram URL</label>
+                            <input type="text" class="form-control" name="instagram" value="{{ trainer.instagram }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Facebook URL</label>
+                            <input type="text" class="form-control" name="facebook" value="{{ trainer.facebook }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Twitter URL</label>
+                            <input type="text" class="form-control" name="twitter" value="{{ trainer.twitter }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">YouTube URL</label>
+                            <input type="text" class="form-control" name="youtube" value="{{ trainer.youtube }}" style="background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
                         </div>
                     </div>
                 </div>
@@ -982,7 +1073,7 @@
         
         const ctx = document.getElementById('bookingsChart');
         if (ctx) {
-            new Chart(ctx, {
+            window.bookingsChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -1018,6 +1109,34 @@
                 }
             });
         }
+        
+        window.updateChartData = function(view) {
+            if (!window.bookingsChartInstance) return;
+            
+            const btn = document.getElementById('chartViewBtn');
+            if (btn) btn.textContent = view.charAt(0).toUpperCase() + view.slice(1);
+            
+            let newLabels = [];
+            let newData = [];
+            
+            if (view === 'daily') {
+                newLabels = ['8am', '10am', '12pm', '2pm', '4pm', '6pm', '8pm'];
+                newData = [1, 3, 2, 5, 4, 7, 2];
+            } else if (view === 'weekly') {
+                newLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                newData = {{ chart_data|tojson }};
+            } else if (view === 'monthly') {
+                newLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                newData = [12, 19, 15, 25];
+            } else if (view === 'yearly') {
+                newLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                newData = [40, 55, 45, 60, 75, 90, 85, 70, 65, 50, 45, 30];
+            }
+            
+            window.bookingsChartInstance.data.labels = newLabels;
+            window.bookingsChartInstance.data.datasets[0].data = newData;
+            window.bookingsChartInstance.update();
+        };
     });
 
     window.approvePause = function(bookingId) {
@@ -1077,6 +1196,19 @@
         .catch(err => {
             alert('An error occurred. Please try again.');
         });
+    };
+
+    window.handleActionSubmit = function(form, message) {
+        if (confirm(message)) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+            }
+            return true;
+        }
+        return false;
     };
 
     document.addEventListener('DOMContentLoaded', function() {

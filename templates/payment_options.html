@@ -41,7 +41,9 @@
 
 {% block content %}
 <div class="container py-5 px-3">
-    <div class="row justify-content-center">
+    {% set current_step = 4 %}
+    {% include 'components/booking_stepper.html' %}
+    <div class="row justify-content-center mt-4">
         <div class="col-12 col-md-8 col-lg-6 animate-slide-up">
             
             <!-- Header Section -->
@@ -112,13 +114,27 @@
                     <i class="fa-solid fa-shield-halved me-2"></i> Pay Now (Online Coming Soon)
                 </button>
                 
-                <form action="/booking/confirm_paylater/{{ booking.id }}" method="POST" class="w-100">
-                    <button type="submit" class="btn btn-primary w-100 py-3">
-                        Confirm & Pay Later
+                <form action="/booking/confirm_paylater/{{ booking.id }}" method="POST" class="w-100" id="payLaterForm">
+                    <button type="submit" class="btn btn-primary w-100 py-3" id="payLaterBtn">
+                        <span id="payLaterSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span id="payLaterText">Confirm & Pay Later</span>
                     </button>
                 </form>
             </div>
             
+        </div>
+    </div>
+    
+    <!-- Success Overlay (Initially Hidden) -->
+    <div id="paymentSuccessOverlay" class="d-none row justify-content-center mt-4">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="glass-panel text-center animate-slide-down" style="padding: 3rem 2rem; background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2);">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle mb-4" style="width: 80px; height: 80px;">
+                    <i class="fa-solid fa-check fs-1 text-success"></i>
+                </div>
+                <h2 class="font-display text-white mb-3" style="font-weight: 800; font-size: 2rem;">Booking Confirmed!</h2>
+                <p class="text-muted" style="max-width: 400px; margin: 0 auto;">Your session has been successfully booked. Redirecting to your bookings...</p>
+            </div>
         </div>
     </div>
 </div>
@@ -130,4 +146,58 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='common.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('payLaterForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show processing state
+        const btn = document.getElementById('payLaterBtn');
+        const spinner = document.getElementById('payLaterSpinner');
+        const text = document.getElementById('payLaterText');
+        
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        text.textContent = 'Processing...';
+
+        // Submit form via fetch
+        fetch(this.action, {
+            method: this.method,
+            body: new FormData(this)
+        }).then(response => {
+            // Hide main content, show success overlay
+            document.querySelector('.row.justify-content-center.mt-4').classList.add('d-none');
+            const successOverlay = document.getElementById('paymentSuccessOverlay');
+            successOverlay.classList.remove('d-none');
+            
+            // Update stepper step 4 to completed
+            const step4 = document.getElementById('step-indicator-4');
+            if (step4) {
+                step4.classList.remove('active');
+                step4.classList.add('completed');
+                const num = step4.querySelector('.step-num');
+                if (num) {
+                    num.classList.remove('bg-primary', 'text-black');
+                    num.classList.add('bg-success', 'text-white');
+                    num.innerHTML = '<i class="fa-solid fa-check"></i>';
+                }
+                const label = step4.querySelector('.step-label');
+                if (label) {
+                    label.classList.remove('text-white');
+                    label.classList.add('text-success');
+                }
+            }
+            
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                window.location.href = '/my-bookings';
+            }, 2000);
+        }).catch(err => {
+            console.error(err);
+            alert('An error occurred while confirming booking.');
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+            text.textContent = 'Confirm & Pay Later';
+        });
+    });
+</script>
 {% endblock %}

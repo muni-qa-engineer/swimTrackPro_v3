@@ -181,6 +181,50 @@ def register_page_routes(app, *, get_pg_connection, load_data):
             for booking in user_bookings
             if str(booking.get("status", "")).strip().lower() != "paid"
         )
+        
+        trainer_payment_settings = {}
+        if current_role == "trainer":
+            try:
+                conn = get_pg_connection()
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT upi_id, account_holder_name, qr_code FROM trainers WHERE LOWER(username) = LOWER(%s)", 
+                    (session.get("user_name"),)
+                )
+                row = cursor.fetchone()
+                if row:
+                    trainer_payment_settings = {
+                        "upi_id": row[0] or "",
+                        "account_holder_name": row[1] or "",
+                        "qr_code": row[2] or ""
+                    }
+                conn.close()
+            except Exception as e:
+                print("Error fetching trainer payment settings:", e)
+        elif current_role == "guest" and user_bookings:
+            # Find the trainer from the most recent unpaid booking, or fallback to the first booking
+            unpaid_bookings = [b for b in user_bookings if str(b.get("status", "")).strip().lower() != "paid"]
+            target_booking = unpaid_bookings[0] if unpaid_bookings else user_bookings[0]
+            trainer_username = target_booking.get("trainer_username")
+            
+            if trainer_username:
+                try:
+                    conn = get_pg_connection()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "SELECT upi_id, account_holder_name, qr_code FROM trainers WHERE LOWER(username) = LOWER(%s)", 
+                        (trainer_username,)
+                    )
+                    row = cursor.fetchone()
+                    if row:
+                        trainer_payment_settings = {
+                            "upi_id": row[0] or "",
+                            "account_holder_name": row[1] or "",
+                            "qr_code": row[2] or ""
+                        }
+                    conn.close()
+                except Exception as e:
+                    print("Error fetching trainer payment settings for guest:", e)
 
         return render_template(
             "payments.html",
@@ -191,6 +235,7 @@ def register_page_routes(app, *, get_pg_connection, load_data):
             account_holder_name=get_setting("account_holder_name", ""),
             trainer_phone=get_setting("trainer_phone", ""),
             upi_id=get_setting("upi_id", ""),
+            trainer_payment_settings=trainer_payment_settings,
         )
 
     @login_required

@@ -20,7 +20,7 @@ def about_trainer():
         assigned_usernames = []
         trainer_user = session.get("trainer_username") or "asdf"
         cursor.execute("""
-            SELECT username, name, phone, email, experience, qualification, currently_working, residence_location, rating, photos, whatsapp 
+            SELECT username, name, phone, email, experience, qualification, currently_working, residence_location, rating, photos, whatsapp, bio, specialties, instagram, facebook, twitter, youtube 
             FROM trainers WHERE username = %s
         """, (trainer_user,))
         trainers = cursor.fetchall()
@@ -38,7 +38,7 @@ def about_trainer():
         if assigned_usernames:
             placeholders = ", ".join(["%s"] * len(assigned_usernames))
             cursor.execute(f"""
-                SELECT username, name, phone, email, experience, qualification, currently_working, residence_location, rating, photos, whatsapp 
+                SELECT username, name, phone, email, experience, qualification, currently_working, residence_location, rating, photos, whatsapp, bio, specialties, instagram, facebook, twitter, youtube 
                 FROM trainers WHERE username IN ({placeholders}) AND is_approved = TRUE
             """, tuple(assigned_usernames))
             trainers = cursor.fetchall()
@@ -74,6 +74,12 @@ def about_trainer():
             "rating": float(r[8]) if r[8] is not None else 5.0,
             "photos": [p.strip() for p in (r[9] or "").split(",") if p.strip()],
             "whatsapp": r[10] or "",
+            "bio": r[11] or "",
+            "specialties": r[12] or "",
+            "instagram": r[13] or "",
+            "facebook": r[14] or "",
+            "twitter": r[15] or "",
+            "youtube": r[16] or "",
             "feedbacks": feedbacks
         })
 
@@ -82,13 +88,18 @@ def about_trainer():
     return render_template("about_trainer.html", coaches=coaches_list, role=current_role, assigned_usernames=assigned_usernames, admin_phone=get_setting("trainer_phone", ""))
 
 
-@login_required
 def help_page():
     return render_template("help.html", role=session.get("role", "guest"))
 
-@login_required
 def about_swimming():
     return render_template("about_swimming.html", role=session.get("role", "guest"))
+
+
+def about_page():
+    return render_template("about.html", role=session.get("role", "guest"))
+
+def faq_page():
+    return render_template("faq.html", role=session.get("role", "guest"))
 
 
 @trainer_required("Only trainer can update the Notice Board.")
@@ -393,9 +404,29 @@ def toggle_block_student(phone):
             flash(f"Student with phone {phone} has been unblocked.", "success")
     else:
         # Create student record if not found just to block them based on phone
-        cursor.execute("INSERT INTO students (owner_phone, owner_name, is_blocked) VALUES (%s, %s, %s)", (phone, 'Unknown', True))
+        cursor.execute(
+            "INSERT INTO students (owner_phone, student_name, owner_name, is_blocked) VALUES (%s, %s, %s, %s)",
+            (phone, "Unknown", "Unknown", True)
+        )
         conn.commit()
-        flash(f"Student with phone {phone} has been blocked and suspended.", "danger")
+        flash(f"Phone {phone} has been added to blocked list.", "danger")
+    conn.close()
+    return redirect(url_for("index"))
+
+@admin_required("Only admin can delete students.")
+def delete_student(phone):
+    conn = get_pg_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT student_name FROM students WHERE owner_phone = %s", (phone,))
+    row = cursor.fetchone()
+    if row:
+        # Delete related bookings first (or cascade if set up, but let's do it manually just in case)
+        cursor.execute("DELETE FROM bookings WHERE owner_phone = %s", (phone,))
+        cursor.execute("DELETE FROM students WHERE owner_phone = %s", (phone,))
+        conn.commit()
+        flash(f"Student with phone {phone} has been permanently deleted.", "success")
+    else:
+        flash("Student not found.", "danger")
     conn.close()
     return redirect(url_for("index"))
 
@@ -410,7 +441,7 @@ def edit_student(phone):
         conn = get_pg_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE students SET name = %s, owner_name = %s, owner_phone = %s WHERE owner_phone = %s",
+            "UPDATE students SET student_name = %s, owner_name = %s, owner_phone = %s WHERE owner_phone = %s",
             (new_name, new_owner, new_phone, phone)
         )
         # also update bookings that might use the old phone
@@ -423,6 +454,28 @@ def edit_student(phone):
         flash("Student details updated successfully.", "success")
         return redirect(url_for("index"))
 
+@admin_required("Only admin can update packages.")
+def update_package():
+    if request.method == "POST":
+        package_id = request.form.get("package_id")
+        base_price = request.form.get("base_price")
+        discount_percentage = request.form.get("discount_percentage")
+        
+        if package_id and base_price and discount_percentage:
+            conn = get_pg_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE packages SET base_price = %s, discount_percentage = %s WHERE id = %s",
+                (base_price, discount_percentage, package_id)
+            )
+            conn.commit()
+            conn.close()
+            flash("Package pricing updated successfully.", "success")
+        else:
+            flash("Missing pricing fields.", "danger")
+    return redirect(url_for("index"))
+
+
 @admin_required("Only admin can edit trainers.")
 def edit_trainer(username):
     if request.method == "POST":
@@ -432,7 +485,8 @@ def edit_trainer(username):
             """
             UPDATE trainers 
             SET name = %s, phone = %s, email = %s, experience = %s, 
-                qualification = %s, currently_working = %s, residence_location = %s, rating = %s
+                qualification = %s, currently_working = %s, residence_location = %s, rating = %s,
+                bio = %s, specialties = %s, instagram = %s, facebook = %s, twitter = %s, youtube = %s
             WHERE username = %s
             """,
             (
@@ -444,6 +498,12 @@ def edit_trainer(username):
                 request.form.get("currently_working"),
                 request.form.get("residence_location"),
                 request.form.get("rating"),
+                request.form.get("bio", ""),
+                request.form.get("specialties", ""),
+                request.form.get("instagram", ""),
+                request.form.get("facebook", ""),
+                request.form.get("twitter", ""),
+                request.form.get("youtube", ""),
                 username
             )
         )
@@ -487,6 +547,47 @@ def delete_trainer_image(username, filename):
         conn.close()
         return redirect(url_for("index"))
 
+@trainer_required("Only trainers can update their profile")
+def update_trainer_profile():
+    if request.method == "POST":
+        username = session.get("trainer_username") or session.get("user_name")
+        
+        name = request.form.get("name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        email = request.form.get("email", "").strip()
+        experience = request.form.get("experience", "").strip()
+        qualification = request.form.get("qualification", "").strip()
+        currently_working = request.form.get("currently_working", "").strip()
+        residence_location = request.form.get("residence_location", "").strip()
+        whatsapp = request.form.get("whatsapp", "").strip()
+        bio = request.form.get("bio", "").strip()
+        specialties = request.form.get("specialties", "").strip()
+        instagram = request.form.get("instagram", "").strip()
+        facebook = request.form.get("facebook", "").strip()
+        twitter = request.form.get("twitter", "").strip()
+        youtube = request.form.get("youtube", "").strip()
+        
+        conn = get_pg_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                UPDATE trainers SET
+                    name = %s, phone = %s, email = %s, experience = %s,
+                    qualification = %s, currently_working = %s, residence_location = %s, whatsapp = %s,
+                    bio = %s, specialties = %s, instagram = %s, facebook = %s, twitter = %s, youtube = %s
+                WHERE username = %s
+            """, (name, phone, email, experience, qualification, currently_working, residence_location, whatsapp, bio, specialties, instagram, facebook, twitter, youtube, username))
+            conn.commit()
+            flash("Profile updated successfully!", "success")
+        except Exception as e:
+            conn.rollback()
+            flash(f"Error updating profile: {str(e)}", "danger")
+        finally:
+            cursor.close()
+            conn.close()
+            
+    return redirect(url_for("about_trainer"))
+
 def register_general_routes(app):
     """Register routes with their legacy endpoint names unchanged."""
 
@@ -494,6 +595,12 @@ def register_general_routes(app):
         "/about-trainer",
         endpoint="about_trainer",
         view_func=about_trainer,
+    )
+    app.add_url_rule(
+        "/trainer/update_profile",
+        endpoint="update_trainer_profile",
+        view_func=update_trainer_profile,
+        methods=["POST"]
     )
     app.add_url_rule(
         "/help",
@@ -506,9 +613,25 @@ def register_general_routes(app):
         view_func=about_swimming,
     )
     app.add_url_rule(
+        "/about",
+        endpoint="about_page",
+        view_func=about_page,
+    )
+    app.add_url_rule(
+        "/faq",
+        endpoint="faq_page",
+        view_func=faq_page,
+    )
+    app.add_url_rule(
         "/update_notice",
         endpoint="update_notice",
         view_func=update_notice,
+        methods=["POST"],
+    )
+    app.add_url_rule(
+        "/admin/update_package",
+        endpoint="update_package",
+        view_func=update_package,
         methods=["POST"],
     )
     def profile_update_password():
@@ -728,6 +851,12 @@ def register_general_routes(app):
         "/admin/toggle_block_student/<phone>",
         endpoint="toggle_block_student",
         view_func=toggle_block_student,
+        methods=["POST"],
+    )
+    app.add_url_rule(
+        "/admin/delete_student/<phone>",
+        endpoint="delete_student",
+        view_func=delete_student,
         methods=["POST"],
     )
     app.add_url_rule(

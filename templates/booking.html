@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
-{% block title %}Book Session - SwimTrackPro{% endblock %}
+{% block title %}Book Session | SwimTrack Pro{% endblock %}
+{% block page_title %}Book Session{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
@@ -89,181 +90,102 @@
 {% block content %}
 <div class="container py-4">
     
-    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
-        <h2 class="font-display text-primary" style="font-size: 1.8rem; margin: 0;">Book a Swimming Session</h2>
-    </div>
+    {% set current_step = 1 %}
+    {% include 'components/booking_stepper.html' %}
     
     <form action="{{ url_for('book') }}" method="POST" id="bookingForm">
         <input type="hidden" name="active_tab" value="book_slot">
         <input type="hidden" name="trainer_username" id="hiddenTrainerInput" required>
         
-        <div class="booking-grid">
-            
-            <!-- Left Panel: Booking Details Form -->
-            <div class="flex flex-col gap-6">
+        <!-- STEP 1: Session Details -->
+        <div class="booking-step-pane" id="step-pane-1">
+            <div class="glass-panel animate-slide-up" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+                <h3 class="font-display mb-4" style="font-size: 1.4rem; color: var(--color-primary);">1. Session Details</h3>
                 
-                <div class="glass-panel animate-slide-up" style="padding: 2rem;">
-                    <h3 class="font-display mb-4" style="font-size: 1.4rem;">1. Session Details</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label for="studentSelect" class="form-label">Swimmer Name <span class="text-danger">*</span></label>
-                            <input type="text" id="studentSelect" name="student" class="form-control" list="swimmersList" placeholder="Enter swimmer name" autocomplete="name" required>
-                            <datalist id="swimmersList">
-                                {% for s in students %}
-                                    <option value="{{ s.name }}"></option>
-                                {% endfor %}
-                            </datalist>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="emailInput" class="form-label">Email Address</label>
-                            <input type="email" id="emailInput" name="email" class="form-control" placeholder="parent@example.com - for alerts" autocomplete="email">
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label for="packageSelect" class="form-label">Select Package <span class="text-danger">*</span></label>
-                            <select name="package" class="form-control" id="packageSelect" required style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
-                                <option value="Demo">Demo Class</option>
-                                <option value="Single">Single Session</option>
-                                <option value="Monthly">Monthly Pack</option>
-                                <option value="Custom">Custom Duration</option>
-                            </select>
-                            <div id="customPackageHint" class="text-muted" style="display:none; font-size: 0.8rem; margin-top: 0.25rem;">
-                                <i class="fa-solid fa-circle-info"></i> Custom package supports a maximum duration of 60 days.
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="startDateInput" class="form-label">Start Date <span class="text-danger">*</span></label>
-                            <input type="date" id="startDateInput" name="date" class="form-control" required style="background-color: rgba(0,0,0,0.4); color-scheme: dark;">
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label for="timeSelect" class="form-label">Preferred Time <span class="text-danger">*</span></label>
-                            <select name="time" id="timeSelect" class="form-control" required style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
-                            </select>
-                        </div>
-                        
-                        <div class="form-group" id="endDateContainer" style="display:none;">
-                            <label for="endDateInput" class="form-label">End Date</label>
-                            <input type="date" id="endDateInput" name="end_date" class="form-control" style="background-color: rgba(0,0,0,0.4); color-scheme: dark;">
-                        </div>
-                    </div>
-                    
-                    <!-- Day Picker -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group">
-                        <label class="form-label">
-                            Select Class Days
-                            <span id="monthlyPackageHint" class="text-muted small ms-2" style="display:none;">(Monthly: Choose 2 or 3 days/week)</span>
-                            <span id="singleDemoHint" class="text-muted small ms-2" style="display:none;">(Picked automatically based on start date)</span>
-                            <span id="customDaysHint" class="text-muted small ms-2" style="display:none;">(Max 5 class days per week)</span>
-                        </label>
-                        
-                        <div class="class-day-checkboxes mt-2">
-                            {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
-                            <div>
-                                <input class="class-day d-none" type="checkbox" value="{{ day }}" id="{{ day|lower }}">
-                                <label class="day-checkbox-label" for="{{ day|lower }}">{{ day[:3] }}</label>
-                            </div>
-                            {% endfor %}
+                        <label for="packageSelect" class="form-label">Select Package <span class="text-danger">*</span></label>
+                        <select name="package" class="form-control" id="packageSelect" required style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
+                            <option value="Demo">Demo Class</option>
+                            <option value="Single">Single Session</option>
+                            <option value="Monthly">Monthly Pack</option>
+                            <option value="Custom">Custom Duration</option>
+                        </select>
+                        <div id="customPackageHint" class="text-muted" style="display:none; font-size: 0.8rem; margin-top: 0.25rem;">
+                            <i class="fa-solid fa-circle-info"></i> Custom package supports a maximum duration of 60 days.
                         </div>
-                        <input type="hidden" name="selected_days" id="selectedDaysInput">
-                        
-                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-md); margin-top: 1rem;">
-                            <div class="text-muted" style="font-size: 0.75rem;">Selected Days</div>
-                            <div id="selectedDaysPreview" style="font-weight: 700; color: var(--color-primary); margin-top: 0.25rem;">No days selected</div>
-                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="startDateInput" class="form-label">Start Date <span class="text-danger">*</span></label>
+                        <input type="date" id="startDateInput" name="date" class="form-control" required style="background-color: rgba(0,0,0,0.4); color-scheme: dark;">
                     </div>
                 </div>
                 
-                <div class="glass-panel animate-slide-up" style="padding: 2rem;">
-                    <h3 class="font-display mb-4" style="font-size: 1.4rem;">2. Pool Location</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div class="form-group">
-                            <label class="form-label">Area / Locality <span class="text-danger">*</span></label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button type="button" id="locationPickerBtn" class="btn btn-outline" style="border-radius: var(--radius-sm); border-color: rgba(255,255,255,0.1); color: var(--color-primary);" title="Pick location on map">
-                                    <i class="fa-solid fa-map-location-dot"></i>
-                                </button>
-                                <input type="text" id="areaInput" list="locationSuggestions" class="form-control" placeholder="Enter locality" required style="flex: 1;">
-                            </div>
-                            <datalist id="locationSuggestions">
-                                {% for location in location_suggestions %}
-                                    <option value="{{ location }}"></option>
-                                {% endfor %}
-                            </datalist>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="form-group">
-                                <label class="form-label">State <span class="text-danger">*</span></label>
-                                <select id="stateSelect" class="form-control" required style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
-                                    <option value="" disabled selected>State</option>
-                                    <option value="Andhra Pradesh">Andhra Pradesh</option>
-                                    <option value="Telangana">Telangana</option>
-                                    <option value="Karnataka">Karnataka</option>
-                                    <option value="Tamil Nadu">Tamil Nadu</option>
-                                    <option value="Maharashtra">Maharashtra</option>
-                                    <option value="Kerala">Kerala</option>
-                                    <option value="Delhi">Delhi</option>
-                                    <option value="Goa">Goa</option>
-                                    <option value="Gujarat">Gujarat</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Pincode <span class="text-danger">*</span></label>
-                                <input type="text" id="pincodeInput" class="form-control" placeholder="6 digits" pattern="^[1-9][0-9]{5}$" maxlength="6" required>
-                            </div>
-                        </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label for="timeSelect" class="form-label">Preferred Time <span class="text-danger">*</span></label>
+                        <select name="time" id="timeSelect" class="form-control" required style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
+                        </select>
                     </div>
                     
-                    <!-- Hidden fields for Leaflet coords -->
-                    <input type="hidden" name="location" id="locationInput" required>
-                    <input type="hidden" name="latitude" id="latitudeInput">
-                    <input type="hidden" name="longitude" id="longitudeInput">
-                    
-                    <div id="locationConflictWarning" class="glass-panel" style="display:none; padding: 1rem; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); color: #f87171; font-size: 0.9rem;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Selected time slot is already booked at another location. Please choose a different slot or location.
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label for="personsInput" class="form-label">Number of Persons</label>
-                            <input type="number" id="personsInput" name="persons" class="form-control" min="1" max="5" value="1">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="feeInput" class="form-label">Calculated Fee</label>
-                            <div style="position: relative;">
-                                <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--color-primary);">₹</span>
-                                <input type="number" id="feeInput" name="fee" class="form-control" value="750" readonly style="padding-left: 2rem; font-weight: 700; font-size: 1.2rem; color: white !important;">
-                            </div>
-                        </div>
+                    <div class="form-group" id="endDateContainer" style="display:none;">
+                        <label for="endDateInput" class="form-label">End Date</label>
+                        <input type="date" id="endDateInput" name="end_date" class="form-control" style="background-color: rgba(0,0,0,0.4); color-scheme: dark;">
                     </div>
                 </div>
                 
-                <!-- Bottom Buttons -->
-                <div class="glass-panel" style="padding: 1.5rem; display: flex; gap: 1rem;">
-                    <button type="reset" id="cancelBookingBtn" class="btn btn-secondary w-50 py-3">Cancel</button>
-                    <button id="confirmBookingBtn" type="submit" class="btn btn-primary w-50 py-3" disabled>
-                        <span id="confirmBookingSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
-                        <span id="confirmBookingText">Proceed to Pay</span>
-                    </button>
+                <!-- Day Picker -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Select Class Days
+                        <span id="monthlyPackageHint" class="text-muted small ms-2" style="display:none;">(Monthly: Choose 2 or 3 days/week)</span>
+                        <span id="singleDemoHint" class="text-muted small ms-2" style="display:none;">(Picked automatically based on start date)</span>
+                        <span id="customDaysHint" class="text-muted small ms-2" style="display:none;">(Max 5 class days per week)</span>
+                    </label>
+                    
+                    <div class="class-day-checkboxes mt-2">
+                        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                        <div>
+                            <input class="class-day d-none" type="checkbox" value="{{ day }}" id="{{ day|lower }}">
+                            <label class="day-checkbox-label" for="{{ day|lower }}">{{ day[:3] }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="selected_days" id="selectedDaysInput">
+                    
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-md); margin-top: 1rem;">
+                        <div class="text-muted" style="font-size: 0.75rem;">Selected Days</div>
+                        <div id="selectedDaysPreview" style="font-weight: 700; color: var(--color-primary); margin-top: 0.25rem;">No days selected</div>
+                    </div>
                 </div>
-                
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div class="form-group">
+                        <label for="personsInput" class="form-label">Number of Persons</label>
+                        <input type="number" id="personsInput" name="persons" class="form-control" min="1" max="5" value="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="feeInput" class="form-label">Calculated Fee</label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--color-primary);">₹</span>
+                            <input type="number" id="feeInput" name="fee" class="form-control" value="750" readonly style="padding-left: 2rem; font-weight: 700; font-size: 1.2rem; color: white !important;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                    <button type="button" class="btn btn-primary px-5 py-2.5 rounded-pill" onclick="wizardNext(1)">Next <i class="fa-solid fa-arrow-right ms-2"></i></button>
+                </div>
             </div>
-            
-            <!-- Right Panel: Active Coaches Selection -->
-            <div class="glass-panel animate-slide-up" style="padding: 1.5rem; height: fit-content;">
+        </div>
+
+        <!-- STEP 2: Coach Selection -->
+        <div class="booking-step-pane d-none" id="step-pane-2">
+            <div class="glass-panel animate-slide-up" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-display" style="font-size: 1.25rem; margin: 0;">3. Select Coach</h3>
+                    <h3 class="font-display" style="font-size: 1.4rem; color: var(--color-primary); margin: 0;">2. Select Coach</h3>
                     <span class="badge badge-success" id="coachesCount">{{ trainers|length }}</span>
                 </div>
                 
@@ -287,7 +209,7 @@
                 </div>
                 
                 <!-- Trainer List -->
-                <div id="trainerListContainer" class="flex flex-col gap-3" style="max-height: 480px; overflow-y: auto;">
+                <div id="trainerListContainer" class="flex flex-col gap-3" style="max-height: 480px; overflow-y: auto; padding-right: 0.5rem;">
                     {% for t in trainers %}
                     <div class="trainer-card" id="trainer-card-{{ t.username }}" data-username="{{ t.username }}" data-name="{{ t.name|lower }}" data-rating="{{ t.rating }}" data-location="{{ t.residence_location|lower }}">
                         <div class="profile-header-notice text-primary small fw-bold mb-2 d-none" id="profile-notice-{{ t.username }}" style="font-size: 0.8rem;">
@@ -336,10 +258,98 @@
                 <div class="text-danger mt-3 d-none text-center" id="trainerSelectionError" style="font-size: 0.8rem;">
                     <i class="fa-solid fa-triangle-exclamation"></i> Please select a coach to continue.
                 </div>
+
+                <div class="mt-4 flex justify-between">
+                    <button type="button" class="btn btn-secondary px-4 py-2.5 rounded-pill" onclick="wizardPrev(2)"><i class="fa-solid fa-arrow-left me-2"></i> Previous</button>
+                    <button type="button" class="btn btn-primary px-5 py-2.5 rounded-pill" onclick="wizardNext(2)">Next <i class="fa-solid fa-arrow-right ms-2"></i></button>
+                </div>
             </div>
-            
+        </div>
+
+        <!-- STEP 3: Swimmer Details -->
+        <div class="booking-step-pane d-none" id="step-pane-3">
+            <div class="glass-panel animate-slide-up" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+                <h3 class="font-display mb-4" style="font-size: 1.4rem; color: var(--color-primary);">3. Swimmer Details</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="form-group">
+                        <label for="studentSelect" class="form-label">Swimmer Name <span class="text-danger">*</span></label>
+                        <input type="text" id="studentSelect" name="student" class="form-control" list="swimmersList" placeholder="Enter swimmer name" autocomplete="name" required>
+                        <datalist id="swimmersList">
+                            {% for s in students %}
+                                <option value="{{ s.name }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="emailInput" class="form-label">Email Address</label>
+                        <input type="email" id="emailInput" name="email" class="form-control" placeholder="parent@example.com - for alerts" autocomplete="email">
+                    </div>
+                </div>
+
+                <h3 class="font-display mt-5 mb-4" style="font-size: 1.4rem; color: var(--color-primary);">Pool Location</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="form-group">
+                        <label class="form-label">Area / Locality <span class="text-danger">*</span></label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" id="locationPickerBtn" class="btn btn-outline" style="border-radius: var(--radius-sm); border-color: rgba(255,255,255,0.1); color: var(--color-primary);" title="Pick location on map">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                            </button>
+                            <input type="text" id="areaInput" list="locationSuggestions" class="form-control" placeholder="Enter locality" required style="flex: 1;">
+                        </div>
+                        <datalist id="locationSuggestions">
+                            {% for location in location_suggestions %}
+                                <option value="{{ location }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="form-group">
+                            <label class="form-label">State <span class="text-danger">*</span></label>
+                            <select id="stateSelect" class="form-control" required style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
+                                <option value="" disabled selected>State</option>
+                                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                <option value="Telangana">Telangana</option>
+                                <option value="Karnataka">Karnataka</option>
+                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="Kerala">Kerala</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Goa">Goa</option>
+                                <option value="Gujarat">Gujarat</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Pincode <span class="text-danger">*</span></label>
+                            <input type="text" id="pincodeInput" class="form-control" placeholder="6 digits" pattern="^[1-9][0-9]{5}$" maxlength="6" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hidden fields for Leaflet coords -->
+                <input type="hidden" name="location" id="locationInput" required>
+                <input type="hidden" name="latitude" id="latitudeInput">
+                <input type="hidden" name="longitude" id="longitudeInput">
+                
+                <div id="locationConflictWarning" class="glass-panel" style="display:none; padding: 1rem; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); color: #f87171; font-size: 0.9rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Selected time slot is already booked at another location. Please choose a different slot or location.
+                </div>
+
+                <div class="mt-4 flex justify-between gap-3">
+                    <button type="button" class="btn btn-secondary px-4 py-3 rounded-pill" onclick="wizardPrev(3)"><i class="fa-solid fa-arrow-left me-2"></i> Previous</button>
+                    <button id="confirmBookingBtn" type="button" class="btn btn-primary px-5 py-3 rounded-pill flex-grow-1" onclick="wizardSubmit()">
+                        <span id="confirmBookingSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span id="confirmBookingText">Proceed to Pay <i class="fa-solid fa-arrow-right ms-2"></i></span>
+                    </button>
+                </div>
+            </div>
         </div>
     </form>
+
     
 </div>
 
@@ -411,6 +421,9 @@
 
         function updateDateRestrictions() {
             if (!startDateInput || !packageSelect) return;
+            const endDateContainer = document.getElementById('endDateContainer');
+            const endDateInput = document.getElementById('endDateInput');
+            
             function toLocalDateString(date) {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -422,12 +435,45 @@
             const maxDate = new Date();
             maxDate.setDate(maxDate.getDate() + 10);
             const maxDateStr = toLocalDateString(maxDate);
+            
             if (packageSelect.value === 'Demo' || packageSelect.value === 'Single') {
                 startDateInput.min = todayStr;
                 startDateInput.max = maxDateStr;
+                if (endDateContainer) endDateContainer.style.display = 'none';
+                if (endDateInput && startDateInput.value) endDateInput.value = startDateInput.value;
+            } else if (packageSelect.value === 'Monthly' || packageSelect.value.includes('Months') || packageSelect.value.includes('Year')) {
+                startDateInput.min = todayStr;
+                startDateInput.removeAttribute('max');
+                if (endDateContainer) endDateContainer.style.display = 'block';
+                if (endDateInput) {
+                    endDateInput.readOnly = true;
+                    endDateInput.style.opacity = '0.7';
+                    endDateInput.style.cursor = 'not-allowed';
+                    if (startDateInput.value) {
+                        let sd = new Date(startDateInput.value);
+                        // Auto calculate month duration based on package value if possible, else default to 1 month
+                        let monthsToAdd = 1;
+                        if (packageSelect.value === '3 Months') monthsToAdd = 3;
+                        if (packageSelect.value === '6 Months') monthsToAdd = 6;
+                        if (packageSelect.value === '9 Months') monthsToAdd = 9;
+                        if (packageSelect.value === '1 Year') monthsToAdd = 12;
+                        
+                        sd.setMonth(sd.getMonth() + monthsToAdd);
+                        endDateInput.value = toLocalDateString(sd);
+                    } else {
+                        endDateInput.value = '';
+                    }
+                }
             } else {
                 startDateInput.min = todayStr;
                 startDateInput.removeAttribute('max');
+                if (endDateContainer) endDateContainer.style.display = 'block';
+                if (endDateInput) {
+                    endDateInput.readOnly = false;
+                    endDateInput.style.opacity = '1';
+                    endDateInput.style.cursor = 'default';
+                    endDateInput.min = startDateInput.value || todayStr;
+                }
             }
         }
 
@@ -438,6 +484,10 @@
             toggleMonthlyHint();
             updateDateRestrictions();
         });
+        
+        if (startDateInput) {
+            startDateInput.addEventListener('change', updateDateRestrictions);
+        }
     });
 </script>
 <script>
@@ -541,7 +591,37 @@
             }
         }
 
-        if (areaInput) areaInput.addEventListener('input', updateFullLocation);
+        if (areaInput) {
+            areaInput.addEventListener('input', updateFullLocation);
+            areaInput.addEventListener('change', function(e) {
+                const val = this.value;
+                // If the user selected an existing location like "Area, State - Pincode" or "Area, State 500049"
+                if (val.includes(',') && val.includes('-')) {
+                    const parts = val.split(',');
+                    const area = parts[0].trim();
+                    const rest = parts.slice(1).join(',').trim();
+                    const dashParts = rest.split('-');
+                    if (dashParts.length >= 2) {
+                        const state = dashParts[0].trim();
+                        const pincode = dashParts[1].trim();
+                        this.value = area;
+                        setSelectedState(state);
+                        if (pincodeInput) pincodeInput.value = pincode;
+                        updateFullLocation();
+                    }
+                } else if (val.includes(',') && /\\d{6}/.test(val)) {
+                    const parts = val.split(',');
+                    const area = parts[0].trim();
+                    const rest = parts.slice(1).join(',').trim();
+                    const stateMatch = rest.match(/([a-zA-Z\\s]+)/);
+                    const pinMatch = rest.match(/(\\d{6})/);
+                    if (stateMatch) setSelectedState(stateMatch[1].trim());
+                    if (pinMatch && pincodeInput) pincodeInput.value = pinMatch[1];
+                    this.value = area;
+                    updateFullLocation();
+                }
+            });
+        }
         if (stateSelect) stateSelect.addEventListener('change', updateFullLocation);
         if (pincodeInput) pincodeInput.addEventListener('input', updateFullLocation);
 
@@ -840,6 +920,122 @@
             });
         }
     });
+    
+    // Wizard Navigation logic
+    function wizardNext(currentStep) {
+        // Basic required field validation for current step before advancing
+        const pane = document.getElementById('step-pane-' + currentStep);
+        const inputs = pane.querySelectorAll('input[required], select[required]');
+        let isValid = true;
+        inputs.forEach(input => {
+            if (!input.checkValidity()) {
+                input.reportValidity();
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) return;
+
+        // Custom validation for Step 1
+        if (currentStep === 1) {
+            const timeSelect = document.getElementById('timeSelect');
+            if (timeSelect && (!timeSelect.value || timeSelect.value === '')) {
+                alert('Please select a valid time slot.');
+                return;
+            }
+        }
+        
+        // Custom validation for Step 2
+        if (currentStep === 2) {
+            const hiddenTrainerInput = document.getElementById('hiddenTrainerInput');
+            if (!hiddenTrainerInput || !hiddenTrainerInput.value) {
+                const trainerSelectionError = document.getElementById('trainerSelectionError');
+                if (trainerSelectionError) trainerSelectionError.classList.remove('d-none');
+                return;
+            }
+        }
+        
+        // Hide current step, show next
+        pane.classList.add('d-none');
+        document.getElementById('step-pane-' + (currentStep + 1)).classList.remove('d-none');
+        
+        // Update Stepper UI
+        document.getElementById('step-indicator-' + currentStep).classList.remove('active');
+        document.getElementById('step-indicator-' + currentStep).classList.add('completed');
+        const currentNum = document.querySelector('#step-indicator-' + currentStep + ' .step-num');
+        currentNum.classList.remove('bg-primary', 'text-black');
+        currentNum.classList.add('bg-success', 'text-white');
+        currentNum.innerHTML = '<i class="fa-solid fa-check"></i>';
+        const currentLabel = document.querySelector('#step-indicator-' + currentStep + ' .step-label');
+        currentLabel.classList.remove('text-white');
+        currentLabel.classList.add('text-success');
+
+        const nextStepEl = document.getElementById('step-indicator-' + (currentStep + 1));
+        nextStepEl.classList.add('active');
+        const nextNum = nextStepEl.querySelector('.step-num');
+        nextNum.classList.remove('bg-secondary', 'text-white');
+        nextNum.classList.add('bg-primary', 'text-black');
+        const nextLabel = nextStepEl.querySelector('.step-label');
+        nextLabel.classList.remove('text-muted');
+        nextLabel.classList.add('text-white');
+    }
+
+    function wizardPrev(currentStep) {
+        // Hide current step, show prev
+        document.getElementById('step-pane-' + currentStep).classList.add('d-none');
+        document.getElementById('step-pane-' + (currentStep - 1)).classList.remove('d-none');
+        
+        // Update Stepper UI
+        document.getElementById('step-indicator-' + currentStep).classList.remove('active');
+        const currentNum = document.querySelector('#step-indicator-' + currentStep + ' .step-num');
+        currentNum.classList.remove('bg-primary', 'text-black');
+        currentNum.classList.add('bg-secondary', 'text-white');
+        const currentLabel = document.querySelector('#step-indicator-' + currentStep + ' .step-label');
+        currentLabel.classList.remove('text-white');
+        currentLabel.classList.add('text-muted');
+
+        const prevStepEl = document.getElementById('step-indicator-' + (currentStep - 1));
+        prevStepEl.classList.remove('completed');
+        prevStepEl.classList.add('active');
+        const prevNum = prevStepEl.querySelector('.step-num');
+        prevNum.classList.remove('bg-success', 'text-white');
+        prevNum.classList.add('bg-primary', 'text-black');
+        prevNum.innerHTML = (currentStep - 1).toString();
+        const prevLabel = prevStepEl.querySelector('.step-label');
+        prevLabel.classList.remove('text-success');
+        prevLabel.classList.add('text-white');
+    }
+
+    function wizardSubmit() {
+        const pane = document.getElementById('step-pane-3');
+        const inputs = pane.querySelectorAll('input[required], select[required]');
+        let isValid = true;
+        inputs.forEach(input => {
+            if (!input.checkValidity()) {
+                input.reportValidity();
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) return;
+
+        // Custom map validation
+        const locationInput = document.getElementById('locationInput');
+        if (!locationInput || !locationInput.value) {
+            alert('Please select your location on the map properly.');
+            return;
+        }
+
+        const btn = document.getElementById('confirmBookingBtn');
+        const spinner = document.getElementById('confirmBookingSpinner');
+        const text = document.getElementById('confirmBookingText');
+        
+        btn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+        if (text) text.textContent = 'Processing...';
+
+        document.getElementById('bookingForm').submit();
+    }
 </script>
 <script>
     // Form reset listeners

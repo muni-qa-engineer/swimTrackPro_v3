@@ -5,14 +5,17 @@ from flask import render_template, session
 from services.dashboard_service import (
     get_admin_dashboard_data,
     get_trainer_dashboard_data,
-    get_guest_dashboard_data
+    get_guest_dashboard_data,
+    get_all_packages
 )
 from swimtrackpro.runtime import get_pg_connection, load_data
 from swimtrackpro.routes.bookings import check_and_perform_auto_resumes
 
 def index():
     if 'user_name' not in session:
-        return render_template('login.html')
+        packages = get_all_packages()
+        return render_template('login.html', pkg=packages)
+
     
     check_and_perform_auto_resumes()
     data = load_data()
