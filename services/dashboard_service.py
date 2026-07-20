@@ -366,14 +366,11 @@ def _process_common_dashboard_data(user_bookings, user_students, current_role, c
                 if session_datetime >= current_time:
                     session_info = {'datetime': session_datetime, 'student': booking.get('student', '--'), 'time': booking_time, 'booking_id': booking.get('id'), 'raw_date': session_date}
                     all_future_sessions.append(session_info)
-                    
-                    next_24_hours = current_time + timedelta(hours=24)
-                    if session_datetime <= next_24_hours:
-                        upcoming_sessions.append(session_info)
             except Exception:
                 continue
 
     all_future_sessions.sort(key=lambda x: x['datetime'])
+    upcoming_sessions = all_future_sessions
 
     if current_role == 'trainer':
         slot_counts = {}
@@ -554,6 +551,7 @@ def _process_common_dashboard_data(user_bookings, user_students, current_role, c
         'guest_all_future': guest_all_future,
         'trainer_upcoming_slots': trainer_upcoming_slots,
         'trainer_remaining_slots': trainer_remaining_slots,
+        'upcoming_sessions': upcoming_sessions,
         'active_package_name': active_package_name,
         'active_package_valid_till': active_package_valid_till,
         'package_status': package_status,

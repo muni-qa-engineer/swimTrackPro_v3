@@ -146,31 +146,33 @@
                 <div class="glass-panel action-required-panel" style="padding: 1.5rem;">
                     <h3 class="font-display text-danger" style="font-size: 1.25rem; margin-bottom: 1.25rem;"><i class="fa-solid fa-triangle-exclamation"></i> Approvals Needed</h3>
                     
-                    {% for p in pending_pauses %}
-                    <div class="action-item" style="flex-direction: column; align-items: stretch; gap: 0.5rem;">
-                        <div>
-                            <strong class="text-white">{{ p.student }}</strong> - <strong class="text-warning">Pause</strong>
-                            <div class="text-muted" style="font-size: 0.8rem;">Reason: {{ p.pause_reason }}</div>
+                    <div style="max-height: 260px; overflow-y: auto; padding-right: 0.5rem;" class="custom-scrollbar">
+                        {% for p in pending_pauses %}
+                        <div class="action-item" style="flex-direction: column; align-items: stretch; gap: 0.5rem;">
+                            <div>
+                                <strong class="text-white">{{ p.student }}</strong> - <strong class="text-warning">Pause</strong>
+                                <div class="text-muted" style="font-size: 0.8rem;">Reason: {{ p.pause_reason }}</div>
+                            </div>
+                            <form action="{{ url_for('approve_pause') }}" method="POST" style="margin: 0; text-align: right;">
+                                <input type="hidden" name="booking_id" value="{{ p.id }}">
+                                <button type="submit" class="btn btn-sm btn-success w-100">Approve Pause</button>
+                            </form>
                         </div>
-                        <form action="{{ url_for('approve_pause') }}" method="POST" style="margin: 0; text-align: right;">
-                            <input type="hidden" name="booking_id" value="{{ p.id }}">
-                            <button type="submit" class="btn btn-sm btn-success w-100">Approve Pause</button>
-                        </form>
-                    </div>
-                    {% endfor %}
+                        {% endfor %}
 
-                    {% for payment in pending_payments %}
-                    <div class="action-item" style="flex-direction: column; align-items: stretch; gap: 0.5rem;">
-                        <div>
-                            <strong class="text-white">{{ payment.student }}</strong> - <strong class="text-warning">Payment Pending</strong>
-                            <div class="text-muted" style="font-size: 0.8rem;">{{ payment.package }} | ₹{{ payment.fee }}</div>
+                        {% for payment in pending_payments %}
+                        <div class="action-item" style="flex-direction: column; align-items: stretch; gap: 0.5rem;">
+                            <div>
+                                <strong class="text-white">{{ payment.student }}</strong> - <strong class="text-warning">Payment Pending</strong>
+                                <div class="text-muted" style="font-size: 0.8rem;">{{ payment.package }} | ₹{{ payment.fee }}</div>
+                            </div>
+                            <form action="{{ url_for('update_payment_status', booking_id=payment.id) }}" method="POST" style="margin: 0; text-align: right;">
+                                <input type="hidden" name="status" value="Paid">
+                                <button type="submit" class="btn btn-sm btn-success w-100">Mark Paid</button>
+                            </form>
                         </div>
-                        <form action="{{ url_for('update_payment_status', booking_id=payment.id) }}" method="POST" style="margin: 0; text-align: right;">
-                            <input type="hidden" name="status" value="Paid">
-                            <button type="submit" class="btn btn-sm btn-success w-100">Mark Paid</button>
-                        </form>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
                 {% endif %}
 
