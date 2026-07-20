@@ -16,16 +16,10 @@
 
 
         <!-- Floating Welcome Toast -->
-        <div id="welcomeToast" style="display: none; position: fixed; top: 20px; right: 20px; z-index: 9999; background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(10px); padding: 1.5rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); transition: opacity 1s ease-out, transform 0.5s ease-out; transform: translateY(-20px); max-width: 350px;">
-            <div class="flex items-center gap-3">
-                <div style="font-size: 2rem;">
-                    <i class="fa-solid fa-hand wave-emoji" style="color: #fbbf24;"></i>
-                </div>
-                <div>
-                    <h4 style="margin: 0; font-weight: 700; font-size: 1.2rem;">{{ welcome_text }}</h4>
-                    <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Track bookings, payments, and progress.</p>
-                </div>
-            </div>
+        <div id="welcomeToast" style="display: none; position: fixed; top: 50%; left: 50%; z-index: 9999; background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(10px); padding: 1.5rem 2.5rem; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.2); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translate(-50%, -40%) scale(0.9); opacity: 0; text-align: center; width: 85%; max-width: 400px;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-hand-wave"></i>👋</div>
+            <h4 style="font-weight: 700; margin-bottom: 0.25rem;">Welcome, {{ session.get('user_name')|title }}!</h4>
+            <p style="margin-bottom: 0; font-size: 0.95rem; opacity: 0.9;">Ready for your next swim session?</p>
         </div>
 
         <!-- Metrics Grid -->
@@ -68,24 +62,6 @@
                 </div>
             </div>
 
-            <!-- Remaining Sessions -->
-            <div class="metric-card warning">
-                <div class="metric-icon"><i class="fa-solid fa-hourglass-half"></i></div>
-                <div>
-                    <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Remaining Sessions</div>
-                    <div style="font-size: 1.8rem; font-weight: 800; line-height: 1;">{{ remaining_sessions }}</div>
-                </div>
-            </div>
-
-            <!-- Makeup Sessions -->
-            <div class="metric-card accent">
-                <div class="metric-icon"><i class="fa-solid fa-rotate"></i></div>
-                <div>
-                    <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Makeup Credits</div>
-                    <div style="font-size: 1.8rem; font-weight: 800; line-height: 1; margin-bottom: 0.25rem;">{{ makeup_sessions }}</div>
-                    <div class="text-secondary" style="font-size: 0.7rem;">{{ total_skips_remaining | default(0) }} skips left</div>
-                </div>
-            </div>
         </div>
 
         <!-- Dashboard Widgets Layout -->
@@ -108,6 +84,16 @@
                             <div class="text-muted" style="font-size: 0.85rem; margin-top: 0.25rem;">Sessions Completed</div>
                             <div class="text-secondary" style="font-size: 0.8rem; margin-top: 0.1rem;">{{ remaining_sessions }} sessions remaining</div>
                         </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="d-flex gap-2 mt-4 pt-3" style="border-top: 1px solid rgba(255,255,255,0.05);">
+                        <a href="/calendar" class="btn btn-outline flex-grow-1" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.5);">
+                            <i class="fa-solid fa-forward-step"></i> Skip
+                        </a>
+                        <button type="button" class="btn btn-outline flex-grow-1" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.5);" onclick="openPauseModal()">
+                            <i class="fa-solid fa-pause"></i> Pause
+                        </button>
                     </div>
                 </div>
 
@@ -252,6 +238,59 @@
         </div>
 
     </section>
+    
+    <!-- Pause Package Modal -->
+    <div class="modal fade" id="pausePackageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-panel" style="background: rgba(15, 15, 18, 0.95); border: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title font-display fw-bold"><i class="fa-solid fa-pause text-danger"></i> Pause Package</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <form id="dashboardPauseForm" onsubmit="submitDashboardPause(event)">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Select Package to Pause</label>
+                            <select class="form-select" id="pauseBookingId" name="booking_id" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.1); color: white;">
+                                <option value="" disabled selected>-- Select an active package --</option>
+                                {% for b in bookings %}
+                                    {% if b.package in ['Monthly', 'Custom'] and not b.is_completed %}
+                                        <option value="{{ b.id }}">
+                                            {{ b.package }} ({{ b.student }}) - {{ b.remaining_classes }} classes left
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="form-text text-secondary" style="font-size: 0.75rem;">Only Monthly and Custom packages can be paused.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Reason for Pause <span class="text-danger">*</span></label>
+                            <select class="form-select" id="pauseReason" name="reason" onchange="toggleOtherReason()" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.1); color: white;">
+                                <option value="" disabled selected>-- Select Reason --</option>
+                                <option value="Medical">Medical / Health Issue</option>
+                                <option value="Travel">Out of Station / Travel</option>
+                                <option value="Exams">Exams / Studies</option>
+                                <option value="Weather">Weather Conditions</option>
+                                <option value="Other">Other (Please specify)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3 d-none" id="otherReasonContainer">
+                            <label class="form-label text-muted small">Specify Reason <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="pauseOtherReason" name="other_reason" rows="2" style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.1); color: white;"></textarea>
+                        </div>
+                        
+                        <div class="alert alert-warning py-2 mb-4" style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15);">
+                            <i class="fa-solid fa-triangle-exclamation"></i> The first pause is instant (7 days). Subsequent pauses require coach approval.
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100" id="submitPauseBtn" style="background: var(--color-danger); border: none;">Confirm Pause</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 
@@ -282,6 +321,59 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Pause Package Modal -->
+<div class="modal fade" id="pausePackageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-panel" style="background: rgba(15, 15, 18, 0.95); border: 1px solid rgba(255,255,255,0.1);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title font-display fw-bold"><i class="fa-solid fa-pause text-danger"></i> Pause Package</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form id="dashboardPauseForm" onsubmit="submitDashboardPause(event)">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Select Package to Pause</label>
+                        <select class="form-select" id="pauseBookingId" name="booking_id" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.1); color: white;">
+                            <option value="" disabled selected>-- Select an active package --</option>
+                            {% for b in bookings %}
+                                {% if b.package in ['Monthly', 'Custom'] and not b.is_completed %}
+                                    <option value="{{ b.id }}">
+                                        {{ b.package }} ({{ b.student }}) - {{ b.remaining_classes }} classes left
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <div class="form-text text-secondary" style="font-size: 0.75rem;">Only Monthly and Custom packages can be paused.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Reason for Pause <span class="text-danger">*</span></label>
+                        <select class="form-select" id="pauseReason" name="reason" onchange="toggleOtherReason()" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.1); color: white;">
+                            <option value="" disabled selected>-- Select Reason --</option>
+                            <option value="Medical">Medical / Health Issue</option>
+                            <option value="Travel">Out of Station / Travel</option>
+                            <option value="Exams">Exams / Studies</option>
+                            <option value="Weather">Weather Conditions</option>
+                            <option value="Other">Other (Please specify)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 d-none" id="otherReasonContainer">
+                        <label class="form-label text-muted small">Specify Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="pauseOtherReason" name="other_reason" rows="2" style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.1); color: white;"></textarea>
+                    </div>
+                    
+                    <div class="alert alert-warning py-2 mb-4" style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15);">
+                        <i class="fa-solid fa-triangle-exclamation"></i> The first pause is instant (7 days). Subsequent pauses require coach approval.
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100" id="submitPauseBtn" style="background: var(--color-danger); border: none;">Confirm Pause</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% set active_page = 'home' %}
@@ -327,22 +419,81 @@
     });
     // Welcome Toast Logic
     document.addEventListener("DOMContentLoaded", function() {
-        if (!sessionStorage.getItem('greeted_{{ session.get("user_name") }}')) {
+        if(!sessionStorage.getItem('greeted_{{ session.get("user_name") }}')) {
             const toast = document.getElementById('welcomeToast');
             if(toast) {
                 toast.style.display = 'block';
-                // Trigger animation
-                setTimeout(() => { toast.style.transform = 'translateY(0)'; }, 50);
+                // Trigger reflow
+                void toast.offsetWidth;
+                toast.style.opacity = '1';
+                toast.style.transform = 'translate(-50%, -50%) scale(1)';
+                sessionStorage.setItem('greeted_{{ session.get("user_name") }}', 'true');
                 
                 setTimeout(() => {
                     toast.style.opacity = '0';
-                    toast.style.transform = 'translateY(-20px)';
-                    setTimeout(() => toast.remove(), 1000);
-                }, 4000);
-                sessionStorage.setItem('greeted_{{ session.get("user_name") }}', 'true');
+                    toast.style.transform = 'translate(-50%, -40%) scale(0.9)';
+                    setTimeout(() => toast.remove(), 500);
+                }, 3500);
             }
         }
     });
+
+    // Pause functionality
+    let pauseModalObj = null;
+    function openPauseModal() {
+        if (!pauseModalObj) {
+            pauseModalObj = new bootstrap.Modal(document.getElementById('pausePackageModal'));
+        }
+        document.getElementById('dashboardPauseForm').reset();
+        document.getElementById('otherReasonContainer').classList.add('d-none');
+        pauseModalObj.show();
+    }
+    
+    function toggleOtherReason() {
+        const select = document.getElementById('pauseReason');
+        const container = document.getElementById('otherReasonContainer');
+        const input = document.getElementById('pauseOtherReason');
+        
+        if (select.value === 'Other') {
+            container.classList.remove('d-none');
+            input.required = true;
+        } else {
+            container.classList.add('d-none');
+            input.required = false;
+        }
+    }
+    
+    function submitDashboardPause(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('submitPauseBtn');
+        const originalText = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+        btn.disabled = true;
+        
+        fetch('/pause_booking', {
+            method: 'POST',
+            body: new FormData(form)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                pauseModalObj.hide();
+                window.location.reload();
+            } else {
+                alert(data.error || 'An error occurred while pausing.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('A network error occurred. Please try again.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
 </script>
 
 <script src="{{ url_for('static', filename='common.js') }}"></script>

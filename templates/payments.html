@@ -98,7 +98,7 @@
         <div class="payments-layout">
             
             <!-- Left Column: Payment Details & QR Code -->
-            <div class="glass-panel" style="padding: 1.5rem; height: fit-content;">
+            <div class="glass-panel" style="padding: 1.5rem; height: fit-content; min-width: 0; word-break: break-word;">
                 
                 {% if role == 'trainer' %}
                     <h3 class="font-display mb-4" style="font-size: 1.25rem;"><i class="fa-solid fa-sliders text-accent"></i> My Payment Settings</h3>
@@ -140,7 +140,7 @@
                         </div>
                         <div>
                             <span class="text-muted">UPI ID:</span>
-                            <div style="font-weight: 600; color: var(--color-primary);">{{ display_upi }}</div>
+                            <div style="font-weight: 600; color: var(--color-primary); word-break: break-all;">{{ display_upi }}</div>
                         </div>
                         <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem;">
                             <span class="text-muted">Total Outstanding:</span>
@@ -173,7 +173,7 @@
             </div>
             
             <!-- Right Column: Table Records -->
-            <div class="glass-panel" style="padding: 1.5rem;">
+            <div class="glass-panel" style="padding: 1.5rem; min-width: 0;">
                 <h3 class="font-display mb-4" style="font-size: 1.25rem;"><i class="fa-solid fa-receipt text-accent"></i> Payment Records</h3>
                 
                 <div class="table-responsive">

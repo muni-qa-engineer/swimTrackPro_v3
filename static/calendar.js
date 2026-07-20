@@ -444,9 +444,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const mobileEl = document.getElementById('mobileCalendarView');
         if (!gridEl || !mobileEl) return;
         
-        // Always show the grid, even on mobile
-        gridEl.style.display = 'grid';
-        mobileEl.style.display = 'none';
+        if (isMobile()) {
+            gridEl.style.display = 'none';
+            mobileEl.style.display = 'block';
+        } else {
+            gridEl.style.display = 'grid';
+            mobileEl.style.display = 'none';
+        }
     }
 
     renderCalendar(today.getFullYear(), today.getMonth());

@@ -181,9 +181,66 @@
             }
         }
         
+        /* Global Page Loader */
+        #global-page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(9, 9, 11, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #global-page-loader.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .loader-container {
+            background: rgba(24, 24, 27, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .swimmer-loader {
+            font-size: 1.4rem;
+            color: var(--color-primary);
+            animation: swim-bob 1.5s infinite ease-in-out;
+        }
+        .loader-text {
+            color: white;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+        @keyframes swim-bob {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-6px) rotate(5deg); }
+        }
     </style>
 </head>
 <body class="{% block body_class %}{% endblock %}" style="display: flex; flex-direction: column; min-height: 100vh;">
+
+    <!-- Global Page Loader -->
+    <div id="global-page-loader">
+        <div class="loader-container">
+            <i class="fa-solid fa-person-swimming swimmer-loader"></i>
+            <h5 class="loader-text">Loading...</h5>
+        </div>
+    </div>
 
     {% block header %}
     <header class="site-header">
@@ -301,6 +358,21 @@
                 } else {
                     link.classList.remove('active');
                 }
+            });
+
+            // Trigger global loader on navigation links
+            document.querySelectorAll('.nav-links .nav-link, .mobile-bottom-nav .nav-item').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href && !href.startsWith('#') && !this.hasAttribute('onclick')) {
+                        document.getElementById('global-page-loader').classList.add('active');
+                    }
+                });
+            });
+            
+            // Hide global loader if page restores from bfcache (back button)
+            window.addEventListener('pageshow', function(e) {
+                document.getElementById('global-page-loader').classList.remove('active');
             });
             
             // Fallback JS removed to allow Bootstrap JS to manage dropdowns.
