@@ -36,16 +36,19 @@
         backdrop-filter: var(--backdrop-blur);
     }
     
-    .nav-pills .nav-link {
+    .sidebar-link {
+        display: block;
         color: var(--color-text-secondary);
         border-radius: var(--radius-sm);
         padding: 0.5rem 1rem;
         margin-bottom: 0.25rem;
         font-weight: 500;
-        transition: all var(--transition-fast) ease;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
     }
     
-    .nav-pills .nav-link:hover, .nav-pills .nav-link.active {
+    .sidebar-link:hover, .sidebar-link.active {
         background-color: rgba(6, 182, 212, 0.1);
         color: var(--color-primary);
     }
@@ -56,8 +59,8 @@
         border-radius: var(--radius-md);
         padding: 2rem;
         margin-bottom: 2rem;
-        backdrop-filter: var(--backdrop-blur);
         scroll-margin-top: 120px;
+        overflow: hidden;
     }
     
     .content-section h3 {
@@ -94,21 +97,78 @@
         padding: 2rem;
         margin-bottom: 2rem;
         scroll-margin-top: 120px;
+        overflow: hidden;
     }
     
     .therapy-img {
         width: 100%;
+        max-width: 100%;
         border-radius: var(--radius-md);
         box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         margin-bottom: 1.5rem;
         border: 1px solid rgba(255,255,255,0.05);
+        display: block;
     }
     
+    /* Mobile horizontal scrollable topic bar */
+    .mobile-topic-bar {
+        display: none;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(9, 9, 11, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 0.5rem 0;
+        margin: 0 -12px 1.5rem -12px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .mobile-topic-bar::-webkit-scrollbar { display: none; }
+    
+    .mobile-topic-bar-inner {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0 1rem;
+        min-width: max-content;
+    }
+    
+    .topic-chip {
+        flex-shrink: 0;
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        text-decoration: none;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    
+    .topic-chip.active, .topic-chip:hover {
+        background: rgba(6, 182, 212, 0.15);
+        color: var(--color-primary);
+        border-color: rgba(6, 182, 212, 0.3);
+    }
+    
+    @media (max-width: 991.98px) {
+        .mobile-topic-bar { display: block; }
+        .hero-section { height: 200px; }
+        .hero-overlay { padding: 1.5rem; }
+        .hero-overlay h1 { font-size: 1.6rem !important; }
+        .content-section { padding: 1.25rem; }
+        .content-section h3 { font-size: 1.1rem; }
+    }
+
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4" data-bs-spy="scroll" data-bs-target="#aboutSidebar" data-bs-offset="100" tabindex="0">
+<div class="container py-4">
     
     <!-- Hero Section -->
     <div class="hero-section fade-in-up">
@@ -118,24 +178,42 @@
         </div>
     </div>
 
+    <!-- Mobile Topic Bar -->
+    <div class="mobile-topic-bar" id="mobileTopicBar">
+        <div class="mobile-topic-bar-inner">
+            <a href="#intro" class="topic-chip active">What is Swimming?</a>
+            <a href="#types" class="topic-chip">Strokes</a>
+            <a href="#learn" class="topic-chip">Learning</a>
+            <a href="#gear" class="topic-chip">Gear</a>
+            <a href="#benefits" class="topic-chip">Benefits</a>
+            <a href="#rehab" class="topic-chip">Rehab</a>
+            <a href="#training" class="topic-chip">Training</a>
+            <a href="#nutrition" class="topic-chip">Nutrition</a>
+            <a href="#competition" class="topic-chip">Competitions</a>
+            <a href="#legends" class="topic-chip">Legends</a>
+            <a href="#safety" class="topic-chip">Safety</a>
+            <a href="#resources" class="topic-chip">Resources</a>
+        </div>
+    </div>
+
     <div class="row g-4">
-        <!-- Sidebar Navigation -->
+        <!-- Desktop Sidebar Navigation -->
         <div class="col-lg-3 d-none d-lg-block">
             <div id="aboutSidebar" class="sticky-sidebar">
                 <h5 class="font-display mb-3" style="font-size: 1.1rem; color: white;"><i class="fa-solid fa-list-ul text-primary"></i> Contents</h5>
-                <nav class="nav nav-pills flex-column" style="font-size: 0.9rem;">
-                    <a class="nav-link active" href="#intro">What is Swimming?</a>
-                    <a class="nav-link" href="#types">Types & Strokes</a>
-                    <a class="nav-link" href="#learn">Learning & Drills</a>
-                    <a class="nav-link" href="#gear">Gear & Discipline</a>
-                    <a class="nav-link" href="#benefits">Health Benefits</a>
-                    <a class="nav-link" href="#rehab">Rehab & Therapy</a>
-                    <a class="nav-link" href="#training">Training & Endurance</a>
-                    <a class="nav-link" href="#nutrition">Nutrition</a>
-                    <a class="nav-link" href="#competition">Competitions</a>
-                    <a class="nav-link" href="#legends">Swimming Legends</a>
-                    <a class="nav-link" href="#safety">Safety First</a>
-                    <a class="nav-link" href="#resources">Resources</a>
+                <nav>
+                    <a class="sidebar-link active" href="#intro">What is Swimming?</a>
+                    <a class="sidebar-link" href="#types">Types & Strokes</a>
+                    <a class="sidebar-link" href="#learn">Learning & Drills</a>
+                    <a class="sidebar-link" href="#gear">Gear & Discipline</a>
+                    <a class="sidebar-link" href="#benefits">Health Benefits</a>
+                    <a class="sidebar-link" href="#rehab">Rehab & Therapy</a>
+                    <a class="sidebar-link" href="#training">Training & Endurance</a>
+                    <a class="sidebar-link" href="#nutrition">Nutrition</a>
+                    <a class="sidebar-link" href="#competition">Competitions</a>
+                    <a class="sidebar-link" href="#legends">Swimming Legends</a>
+                    <a class="sidebar-link" href="#safety">Safety First</a>
+                    <a class="sidebar-link" href="#resources">Resources</a>
                 </nav>
             </div>
         </div>
@@ -153,7 +231,7 @@
 
             <section id="types" class="content-section">
                 <h3><i class="fa-solid fa-person-swimming"></i> Types of Swimming</h3>
-                <img src="{{ url_for('static', filename='images/swimming_styles.jpg') }}" alt="Swimming Strokes and Styles" class="therapy-img mt-2 mb-4" style="object-fit: cover; height: 300px;">
+                <img src="{{ url_for('static', filename='images/swimming_styles.jpg') }}" alt="Swimming Strokes and Styles" class="therapy-img mt-2 mb-4" style="object-fit: cover; max-height: 280px;">
                 <p>Competitive swimming centers around four primary strokes, each with unique mechanics and benefits:</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div class="info-card">
@@ -179,69 +257,65 @@
                 <h3><i class="fa-solid fa-graduation-cap"></i> Learning & Drills</h3>
                 <p>Learning to swim starts with getting comfortable in the water. Beginners focus on <strong>water orientation</strong>—blowing bubbles, floating, and gliding before attempting strokes.</p>
                 <h5 class="fw-bold text-white mt-4">Essential Drills</h5>
-                <ul class="flex flex-col gap-2 mt-2">
-                    <li><strong>Catch-Up Drill:</strong> Wait for one hand to touch the other in front of you before starting the next pull (Freestyle).</li>
-                    <li><strong>Kickboard Drills:</strong> Isolating the legs by holding a board, allowing you to focus entirely on kick technique and hip positioning.</li>
-                    <li><strong>Fist Drill:</strong> Swimming with closed fists to force the use of the forearms for pulling, improving "catch" awareness.</li>
-                    <li><strong>Sculling:</strong> Moving the hands in a figure-eight motion to feel the water and improve hand pitch.</li>
+                <ul class="d-flex flex-column gap-2">
+                    <li><strong>Kickboard Drills:</strong> Isolate the legs for stronger kicks.</li>
+                    <li><strong>Catch-Up Drill:</strong> One arm at a time to perfect stroke timing.</li>
+                    <li><strong>Fingertip Drag:</strong> Trains high-elbow recovery in freestyle.</li>
+                    <li><strong>Single Arm Drill:</strong> Focuses on pulling technique one arm at a time.</li>
                 </ul>
             </section>
 
             <section id="gear" class="content-section">
-                <h3><i class="fa-solid fa-mask"></i> Gear, Dress Code & Discipline</h3>
-                <p>Proper equipment and pool etiquette ensure a safe, hygienic, and effective swimming environment.</p>
-                
-                <h5 class="fw-bold text-white mt-4">Essential Equipment</h5>
-                <ul class="flex flex-col gap-2">
-                    <li><strong>Swimsuit:</strong> Hydrodynamic suits (jammers for men, one-piece for women) made of chlorine-resistant material.</li>
-                    <li><strong>Goggles:</strong> Protects eyes from chemicals and allows underwater visibility.</li>
-                    <li><strong>Swim Cap:</strong> Protects hair, reduces drag, and keeps the pool clean.</li>
-                    <li><strong>Training Gear:</strong> Kickboards, Pull Buoys, Fins, and Paddles.</li>
-                </ul>
-
-                <h5 class="fw-bold text-white mt-4">Pool Discipline</h5>
-                <ul class="flex flex-col gap-2">
-                    <li>Always shower before entering the pool to remove oils and lotions.</li>
-                    <li>Circle swim in crowded lanes (stay to the right).</li>
-                    <li>Do not stop in the middle of a lane; rest at the wall corners.</li>
-                    <li>Follow lifeguard instructions immediately.</li>
-                </ul>
+                <h3><i class="fa-solid fa-goggles"></i> Gear & Discipline</h3>
+                <p>Having the right equipment is essential for safe and effective swimming.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    <div class="info-card">
+                        <h5 class="fw-bold text-white"><i class="fa-solid fa-glasses text-primary"></i> Goggles</h5>
+                        <p class="mb-0 text-muted" style="font-size: 0.85rem;">Protect your eyes from chlorine and improve underwater visibility. Choose anti-fog with UV protection.</p>
+                    </div>
+                    <div class="info-card" style="border-left-color: #f59e0b;">
+                        <h5 class="fw-bold text-white"><i class="fa-solid fa-hat-cowboy text-warning"></i> Swim Cap</h5>
+                        <p class="mb-0 text-muted" style="font-size: 0.85rem;">Reduces drag, keeps hair dry, and is mandatory in most pools. Silicone caps last longer than latex.</p>
+                    </div>
+                    <div class="info-card" style="border-left-color: #10b981;">
+                        <h5 class="fw-bold text-white"><i class="fa-solid fa-shirt text-success"></i> Swimsuit</h5>
+                        <p class="mb-0 text-muted" style="font-size: 0.85rem;">Wear a proper chlorine-resistant swimsuit. Avoid cotton clothing in the pool.</p>
+                    </div>
+                    <div class="info-card" style="border-left-color: #ef4444;">
+                        <h5 class="fw-bold text-white"><i class="fa-solid fa-stopwatch text-danger"></i> Kickboard & Fins</h5>
+                        <p class="mb-0 text-muted" style="font-size: 0.85rem;">Training aids that isolate muscle groups for targeted improvement.</p>
+                    </div>
+                </div>
             </section>
 
             <section id="benefits" class="content-section">
                 <h3><i class="fa-solid fa-heart-pulse"></i> Health Benefits</h3>
-                <p><strong>Who can swim?</strong> Absolutely anyone. From infants to pregnant women, elite athletes, and seniors. Because water provides buoyancy, it supports up to 90% of your body weight.</p>
-                
-                <h5 class="fw-bold text-white mt-4">Top Benefits</h5>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                    <ul class="flex flex-col gap-2">
-                        <li><strong>Cardiovascular Health:</strong> Makes your heart and lungs stronger.</li>
-                        <li><strong>Muscle Toning:</strong> Provides all-over resistance, building lean muscle.</li>
-                        <li><strong>Asthma Friendly:</strong> The humid air of pools helps prevent exercise-induced asthma.</li>
-                    </ul>
-                    <ul class="flex flex-col gap-2">
-                        <li><strong>Stress Relief:</strong> Rhythmic breathing triggers relaxation.</li>
-                        <li><strong>Better Sleep:</strong> Highly effective at fighting insomnia.</li>
-                        <li><strong>Weight Management:</strong> Burns high calories (up to 700 calories/hr).</li>
-                    </ul>
-                </div>
+                <p>Swimming is one of the most complete forms of exercise available, offering benefits across all age groups.</p>
+                <ul class="d-flex flex-column gap-2">
+                    <li><strong>Cardiovascular Fitness:</strong> Strengthens the heart and improves circulation.</li>
+                    <li><strong>Weight Management:</strong> Burns 400-700 calories per hour depending on intensity.</li>
+                    <li><strong>Muscle Toning:</strong> Engages all major muscle groups simultaneously.</li>
+                    <li><strong>Joint-Friendly:</strong> Low-impact exercise perfect for arthritis sufferers.</li>
+                    <li><strong>Mental Health:</strong> The rhythmic nature of swimming reduces stress, anxiety, and depression.</li>
+                    <li><strong>Lung Capacity:</strong> Regular swimming significantly improves breathing efficiency.</li>
+                </ul>
             </section>
 
             <section id="rehab" class="content-section">
-                <h3><i class="fa-solid fa-wheelchair"></i> Rehabilitation & Therapy</h3>
-                <img src="{{ url_for('static', filename='images/swimming_therapy.jpg') }}" alt="Aqua Therapy" class="therapy-img" style="height: 300px; object-fit: cover;">
-                <p>Swimming and <strong>Aqua Therapy (Hydrotherapy)</strong> are considered miracle workers for rehabilitation.</p>
-                <ul class="flex flex-col gap-2">
-                    <li><strong>For the Elderly:</strong> Improves balance, joint flexibility, and bone density without the risk of falling. Warm water soothes arthritis pain.</li>
-                    <li><strong>For Fractured/Injured Persons:</strong> Water resistance allows for muscle strengthening around a healed fracture without load-bearing stress.</li>
-                    <li><strong>For the Chronically Ill:</strong> Patients with MS (Multiple Sclerosis) or Fibromyalgia find moving in water far less painful.</li>
+                <h3><i class="fa-solid fa-hand-holding-medical"></i> Rehab & Therapy</h3>
+                <p>Aquatic therapy uses the unique properties of water—buoyancy, resistance, and hydrostatic pressure—for rehabilitation.</p>
+                <ul class="d-flex flex-column gap-2">
+                    <li><strong>Post-Injury Recovery:</strong> Water supports the body, reducing stress on healing tissues.</li>
+                    <li><strong>Arthritis Management:</strong> Warm-water therapy reduces joint stiffness and pain.</li>
+                    <li><strong>Back Pain Relief:</strong> Swimming strengthens core muscles that support the spine.</li>
+                    <li><strong>Neurological Rehab:</strong> Water-based exercises help stroke and Parkinson's patients.</li>
                 </ul>
             </section>
 
             <section id="training" class="content-section">
                 <h3><i class="fa-solid fa-dumbbell"></i> Training & Endurance</h3>
                 <p>Building swimming endurance requires a structured approach to training.</p>
-                <ul class="flex flex-col gap-2">
+                <ul class="d-flex flex-column gap-2">
                     <li><strong>Interval Training:</strong> Instead of swimming continuously, break it down (e.g., 10 x 50m).</li>
                     <li><strong>Pacing:</strong> Learning to swim at different "gears" without exhausting yourself.</li>
                     <li><strong>Dryland Training:</strong> Core exercises and stretching prevent swimmer's shoulder.</li>
@@ -252,7 +326,7 @@
             <section id="nutrition" class="content-section">
                 <h3><i class="fa-solid fa-apple-whole"></i> Nutrition</h3>
                 <p>Swimming demands massive energy. What you eat directly impacts your performance in the water.</p>
-                <ul class="flex flex-col gap-2">
+                <ul class="d-flex flex-column gap-2">
                     <li><strong>Pre-Swim:</strong> Easily digestible carbohydrates 1-2 hours before (bananas, toast, oatmeal).</li>
                     <li><strong>Hydration:</strong> Keep a water bottle on the pool deck.</li>
                     <li><strong>Post-Swim Recovery:</strong> A mix of protein and carbs within 45 minutes of finishing.</li>
@@ -262,7 +336,7 @@
             <section id="competition" class="content-section">
                 <h3><i class="fa-solid fa-medal"></i> Competitions & Levels</h3>
                 <p>Competitive swimming tests speed and technique over distances ranging from 50m to 1500m in the pool.</p>
-                <ul class="flex flex-col gap-2">
+                <ul class="d-flex flex-column gap-2">
                     <li><strong>Club/Local Level:</strong> Age-group swimming, focusing on personal bests.</li>
                     <li><strong>National Level:</strong> Elite domestic competitions (Olympic Trials).</li>
                     <li><strong>International Level:</strong> World Aquatics Championships, Olympic Games.</li>
@@ -289,7 +363,7 @@
                 <h3><i class="fa-solid fa-life-ring"></i> Safety & Precautions</h3>
                 <p>Water is inherently dangerous if proper respect isn't shown. Always prioritize safety.</p>
                 <div class="info-card" style="border-left-color: var(--color-danger); background: rgba(239, 68, 68, 0.05);">
-                    <ul class="mb-0 flex flex-col gap-2" style="color: #f87171;">
+                    <ul class="mb-0 d-flex flex-column gap-2" style="color: #f87171;">
                         <li><strong>Never swim alone.</strong> Always swim where a lifeguard is present.</li>
                         <li><strong>Know your limits.</strong> Do not venture into the deep end if you are not a strong swimmer.</li>
                         <li><strong>No running on the deck.</strong> Wet tiles are extremely slippery.</li>
@@ -301,7 +375,7 @@
             <section id="resources" class="content-section mb-0">
                 <h3><i class="fa-solid fa-link"></i> Resources & Referral Links</h3>
                 <p>Explore more about the world of swimming through these authoritative organizations:</p>
-                <ul class="flex flex-col gap-2">
+                <ul class="d-flex flex-column gap-2">
                     <li><a href="https://www.worldaquatics.com/" target="_blank" class="fw-bold text-primary">World Aquatics (FINA) <i class="fa-solid fa-arrow-up-right-from-square small"></i></a></li>
                     <li><a href="https://swimming.org.in/" target="_blank" class="fw-bold text-primary">Swimming Federation of India (SFI) <i class="fa-solid fa-arrow-up-right-from-square small"></i></a></li>
                     <li><a href="https://www.youtube.com/c/myswimpro" target="_blank" class="fw-bold text-primary">MySwimPro (YouTube) <i class="fa-brands fa-youtube"></i></a></li>
@@ -320,7 +394,13 @@
 <script src="{{ url_for('static', filename='common.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('#aboutSidebar .nav-link').forEach(link => {
+        // Collect all clickable nav links (desktop sidebar + mobile chips)
+        const allNavLinks = document.querySelectorAll('.sidebar-link, .topic-chip');
+        const sections = document.querySelectorAll('.content-section, .legend-card');
+        const mobileBar = document.getElementById('mobileTopicBar');
+        
+        // Smooth scroll on click for all nav links
+        allNavLinks.forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 const targetId = this.getAttribute('href');
@@ -328,33 +408,43 @@
                     const targetElement = document.querySelector(targetId);
                     if (targetElement) {
                         targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        document.querySelectorAll('#aboutSidebar .nav-link').forEach(l => l.classList.remove('active'));
-                        this.classList.add('active');
-                        // Update URL hash without jumping
+                        // Update active state for both desktop and mobile
+                        allNavLinks.forEach(l => l.classList.remove('active'));
+                        document.querySelectorAll(`[href="${targetId}"]`).forEach(l => l.classList.add('active'));
                         history.pushState(null, null, targetId);
                     }
                 }
             });
         });
 
-        const sections = document.querySelectorAll('.content-section, .legend-card');
-        const navLinks = document.querySelectorAll('#aboutSidebar .nav-link');
-        
+        // Scroll spy: highlight current section in both navs
         window.addEventListener('scroll', () => {
             let current = '';
             sections.forEach(section => {
                 const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-                if (window.scrollY >= sectionTop - 130) {
+                if (window.scrollY >= sectionTop - 150) {
                     current = section.getAttribute('id');
                 }
             });
             
-            navLinks.forEach(link => {
+            allNavLinks.forEach(link => {
                 link.classList.remove('active');
                 if (link.getAttribute('href') === `#${current}`) {
                     link.classList.add('active');
                 }
             });
+            
+            // Auto-scroll the mobile topic bar to keep active chip visible
+            if (mobileBar) {
+                const activeChip = mobileBar.querySelector('.topic-chip.active');
+                if (activeChip) {
+                    const barRect = mobileBar.getBoundingClientRect();
+                    const chipRect = activeChip.getBoundingClientRect();
+                    if (chipRect.left < barRect.left || chipRect.right > barRect.right) {
+                        activeChip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    }
+                }
+            }
         });
     });
 </script>
