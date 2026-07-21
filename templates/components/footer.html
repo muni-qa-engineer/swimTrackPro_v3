@@ -1,61 +1,60 @@
 <hr style="border-top: 1px solid rgba(255, 255, 255, 0.4); margin: 0; padding: 0;">
-<footer class="footer mt-auto" style="background: rgba(9, 9, 11, 0.95); padding: 4rem 0 2rem 0; margin-top: 4rem; backdrop-filter: var(--backdrop-blur);">
+<footer class="footer mt-auto" style="background: rgba(9, 9, 11, 0.95); padding: 3rem 0 2rem 0; margin-top: 4rem; backdrop-filter: var(--backdrop-blur);">
     <div class="container">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8" style="color: var(--color-text-secondary);">
-            
-            <!-- Column 1: Brand -->
-            <div class="footer-col">
-                <a class="navbar-brand font-display" href="/" style="font-size: 1.5rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; margin-bottom: 1rem;">
-                    <i class="fa-solid fa-water" style="color: var(--color-primary);"></i> SwimTrackPro
-                </a>
-                <p style="font-size: 0.9rem; line-height: 1.6; max-width: 250px;">
-                    Premium swimming tracking and coaching platform. Elevate your performance with unlimited sports tracking and seamless bookings.
-                </p>
-                <div class="social-links flex gap-4 mt-4">
-                    <a href="#" style="color: var(--color-text-secondary); font-size: 1.2rem; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-secondary)'"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" style="color: var(--color-text-secondary); font-size: 1.2rem; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-secondary)'"><i class="fa-brands fa-twitter"></i></a>
-                    <a href="#" style="color: var(--color-text-secondary); font-size: 1.2rem; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-secondary)'"><i class="fa-brands fa-youtube"></i></a>
-                    <a href="#" style="color: var(--color-text-secondary); font-size: 1.2rem; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-secondary)'"><i class="fa-brands fa-facebook"></i></a>
-                </div>
+        <!-- Brand Section -->
+        <div style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+            <a class="navbar-brand font-display" href="/" style="font-size: 1.5rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; margin-bottom: 0.75rem;">
+                <i class="fa-solid fa-water" style="color: var(--color-primary);"></i> SwimTrackPro
+            </a>
+            <p style="font-size: 0.85rem; line-height: 1.6; max-width: 350px; margin: 0 0 0.75rem 0;">
+                Premium swimming tracking and coaching platform. Elevate your performance with unlimited sports tracking and seamless bookings.
+            </p>
+            <div class="social-links" style="display: flex; gap: 1rem;">
+                <a href="#" style="color: var(--color-text-secondary); font-size: 1.1rem; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-secondary)'"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" style="color: var(--color-text-secondary); font-size: 1.1rem; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-secondary)'"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#" style="color: var(--color-text-secondary); font-size: 1.1rem; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-secondary)'"><i class="fa-brands fa-youtube"></i></a>
+                <a href="#" style="color: var(--color-text-secondary); font-size: 1.1rem; transition: color var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-text-secondary)'"><i class="fa-brands fa-facebook"></i></a>
             </div>
+        </div>
 
-            <!-- Column 2: Company -->
-            <div class="footer-col">
-                <h4 style="color: white; font-size: 1.1rem; font-weight: 600; margin-bottom: 1.25rem;">Company</h4>
-                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-                    <li><a href="/about" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">About Us</a></li>
-                    <li><a href="/register" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Careers</a></li>
-                    <li><a href="#" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Press</a></li>
-                    <li><a href="/help" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Contact Us</a></li>
+        <!-- Links Row: Always 3 columns -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+            <!-- Company -->
+            <div>
+                <h4 style="color: white; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem;">Company</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <li><a href="/about" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">About Us</a></li>
+                    <li><a href="/register" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Careers</a></li>
+                    <li><a href="#" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Press</a></li>
+                    <li><a href="/help" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Contact Us</a></li>
                 </ul>
             </div>
 
-            <!-- Column 3: Resources -->
-            <div class="footer-col">
-                <h4 style="color: white; font-size: 1.1rem; font-weight: 600; margin-bottom: 1.25rem;">Resources</h4>
-                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-                    <li><a href="/about-swimming" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">About Swimming</a></li>
-                    <li><a href="/#plans" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Pricing & Plans</a></li>
-                    <li><a href="/help" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Help Center</a></li>
-                    <li><a href="/faq" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">FAQs</a></li>
+            <!-- Resources -->
+            <div>
+                <h4 style="color: white; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem;">Resources</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <li><a href="/about-swimming" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Swimming</a></li>
+                    <li><a href="/#plans" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Pricing</a></li>
+                    <li><a href="/help" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Help Center</a></li>
+                    <li><a href="/faq" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">FAQs</a></li>
                 </ul>
             </div>
 
-            <!-- Column 4: Legal -->
-            <div class="footer-col">
-                <h4 style="color: white; font-size: 1.1rem; font-weight: 600; margin-bottom: 1.25rem;">Legal</h4>
-                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-                    <li><a href="/terms-agreement" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Terms & Conditions</a></li>
-                    <li><a href="#" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Privacy Policy</a></li>
-                    <li><a href="#" style="color: inherit; text-decoration: none; font-size: 0.9rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Cookie Policy</a></li>
+            <!-- Legal -->
+            <div>
+                <h4 style="color: white; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem;">Legal</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <li><a href="/terms-agreement" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Terms</a></li>
+                    <li><a href="#" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Privacy</a></li>
+                    <li><a href="#" style="color: inherit; text-decoration: none; font-size: 0.82rem; transition: color var(--transition-fast);" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-secondary)'">Cookies</a></li>
                 </ul>
             </div>
-            
         </div>
         
-        <div class="footer-bottom" style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 2rem; display: flex; flex-direction: column; md-flex-direction: row; justify-content: space-between; align-items: center; color: var(--color-text-muted); font-size: 0.85rem;">
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; color: var(--color-text-muted); font-size: 0.8rem; flex-wrap: wrap; gap: 0.25rem;">
             <p style="margin: 0;">&copy; 2026 SwimTrackPro. All rights reserved.</p>
-            <p style="margin: 0; margin-top: 0.5rem;">Built for excellence in aquatic sports.</p>
+            <p style="margin: 0;">Built for excellence in aquatic sports.</p>
         </div>
     </div>
 </footer>

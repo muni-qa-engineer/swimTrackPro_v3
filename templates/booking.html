@@ -84,6 +84,38 @@
         border-radius: var(--radius-md);
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
+    
+    /* Custom Autocomplete Dropdown */
+    .custom-autocomplete-list {
+        display: none;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        z-index: 9999;
+        max-height: 180px;
+        overflow-y: auto;
+        background: #1e1e22;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .custom-autocomplete-list.active {
+        display: block;
+    }
+    .custom-autocomplete-item {
+        padding: 0.65rem 1rem;
+        color: #e4e4e7;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .custom-autocomplete-item:hover,
+    .custom-autocomplete-item.highlighted {
+        background: rgba(6, 182, 212, 0.15);
+        color: #fff;
+    }
 </style>
 {% endblock %}
 
@@ -272,14 +304,10 @@
                 <h3 class="font-display mb-4" style="font-size: 1.4rem; color: var(--color-primary);">3. Swimmer Details</h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="form-group">
+                    <div class="form-group" style="position: relative;">
                         <label for="studentSelect" class="form-label">Swimmer Name <span class="text-danger">*</span></label>
-                        <input type="text" id="studentSelect" name="student" class="form-control" list="swimmersList" placeholder="Enter swimmer name" autocomplete="name" required>
-                        <datalist id="swimmersList">
-                            {% for s in students %}
-                                <option value="{{ s.name }}"></option>
-                            {% endfor %}
-                        </datalist>
+                        <input type="text" id="studentSelect" name="student" class="form-control" placeholder="Enter swimmer name" autocomplete="off" required>
+                        <div class="custom-autocomplete-list" id="swimmerAutoList"></div>
                     </div>
                     
                     <div class="form-group">
@@ -301,19 +329,15 @@
                 <h3 class="font-display mt-5 mb-4" style="font-size: 1.4rem; color: var(--color-primary);">Pool Location</h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="form-group">
+                    <div class="form-group" style="position: relative;">
                         <label class="form-label">Area / Locality <span class="text-danger">*</span></label>
                         <div style="display: flex; gap: 0.5rem;">
                             <button type="button" id="locationPickerBtn" class="btn btn-outline" style="border-radius: var(--radius-sm); border-color: rgba(255,255,255,0.1); color: var(--color-primary);" title="Pick location on map">
                                 <i class="fa-solid fa-map-location-dot"></i>
                             </button>
-                            <input type="text" id="areaInput" list="locationSuggestions" class="form-control" placeholder="Enter locality" required style="flex: 1;">
+                            <input type="text" id="areaInput" class="form-control" placeholder="Enter locality" autocomplete="off" required style="flex: 1;">
                         </div>
-                        <datalist id="locationSuggestions">
-                            {% for location in location_suggestions %}
-                                <option value="{{ location }}"></option>
-                            {% endfor %}
-                        </datalist>
+                        <div class="custom-autocomplete-list" id="areaAutoList"></div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3">
@@ -1050,6 +1074,56 @@
 
         document.getElementById('bookingForm').submit();
     }
+
+    // ── Custom Autocomplete Logic ──
+    const swimmerNames = [
+        {% for s in students %}
+            {{ s.name | tojson }},
+        {% endfor %}
+    ];
+    const locationNames = [
+        {% for location in location_suggestions %}
+            {{ location | tojson }},
+        {% endfor %}
+    ];
+
+    function setupAutocomplete(inputId, listId, dataArray) {
+        const input = document.getElementById(inputId);
+        const listEl = document.getElementById(listId);
+        if (!input || !listEl) return;
+
+        input.addEventListener('input', function() {
+            const val = this.value.toLowerCase().trim();
+            listEl.innerHTML = '';
+            if (!val) { listEl.classList.remove('active'); return; }
+            const matches = dataArray.filter(item => item.toLowerCase().includes(val));
+            if (matches.length === 0) { listEl.classList.remove('active'); return; }
+            matches.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'custom-autocomplete-item';
+                div.textContent = m;
+                div.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    input.value = m;
+                    listEl.classList.remove('active');
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                listEl.appendChild(div);
+            });
+            listEl.classList.add('active');
+        });
+
+        input.addEventListener('focus', function() {
+            if (this.value.trim()) this.dispatchEvent(new Event('input'));
+        });
+
+        input.addEventListener('blur', function() {
+            setTimeout(() => listEl.classList.remove('active'), 150);
+        });
+    }
+
+    setupAutocomplete('studentSelect', 'swimmerAutoList', swimmerNames);
+    setupAutocomplete('areaInput', 'areaAutoList', locationNames);
 </script>
 <script>
     // Form reset listeners
