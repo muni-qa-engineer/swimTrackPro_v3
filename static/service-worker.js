@@ -1,13 +1,12 @@
-const CACHE_NAME = 'swimtrackpro-cache-v1';
+const CACHE_NAME = 'swimtrackpro-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
-  '/static/common.css',
-  '/static/dashboard_core.css',
+  '/static/css/global.css',
+  '/static/css/animations.css',
+  '/static/css/dashboard.css',
   '/static/common.js',
-  '/static/images/hero-banner.jpg',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
 ];
 
 // Install Event - Cache App Shell Assets
