@@ -283,7 +283,17 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="emailInput" class="form-label">Email Address</label>
+                        <label for="skillLevelSelect" class="form-label">Skill Level <span class="text-danger">*</span></label>
+                        <select id="skillLevelSelect" name="skill_level" class="form-select bg-dark text-white" style="border-color: rgba(255,255,255,0.1);" required>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Competitor">Competitor</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group md:col-span-2">
+                        <label for="emailInput" class="form-label">Email Address <span class="text-muted small fw-normal">(Optional)</span></label>
                         <input type="email" id="emailInput" name="email" class="form-control" placeholder="parent@example.com - for alerts" autocomplete="email">
                     </div>
                 </div>
@@ -978,6 +988,8 @@
         const nextLabel = nextStepEl.querySelector('.step-label');
         nextLabel.classList.remove('text-muted');
         nextLabel.classList.add('text-white');
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function wizardPrev(currentStep) {
@@ -1004,6 +1016,8 @@
         const prevLabel = prevStepEl.querySelector('.step-label');
         prevLabel.classList.remove('text-success');
         prevLabel.classList.add('text-white');
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function wizardSubmit() {

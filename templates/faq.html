@@ -1,16 +1,32 @@
 {% extends 'base.html' %}
 
-{% block title %}FAQs & Guide - SwimTrackPro{% endblock %}
+{% block title %}Help Center - SwimTrackPro{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <style>
+    .glass-panel {
+        background: rgba(24, 24, 27, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-md, 16px);
+    }
+    
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(6, 182, 212, 0.15);
+        border-color: rgba(6, 182, 212, 0.3);
+    }
+
     /* Accordion Custom Dark Styling */
     .accordion-item {
         background: rgba(0, 0, 0, 0.2) !important;
         border: 1px solid rgba(255, 255, 255, 0.05) !important;
-        margin-bottom: 0.5rem;
-        border-radius: var(--radius-sm) !important;
+        margin-bottom: 0.75rem;
+        border-radius: var(--radius-sm, 8px) !important;
         overflow: hidden;
     }
     
@@ -20,6 +36,7 @@
         font-weight: 600;
         border: none !important;
         box-shadow: none !important;
+        padding: 1.25rem 1.5rem;
     }
     
     .accordion-button:not(.collapsed) {
@@ -32,159 +49,214 @@
     }
     
     .accordion-body {
-        color: var(--color-text-secondary) !important;
-        font-size: 0.9rem;
-        line-height: 1.6;
+        color: var(--color-text-secondary, #a1a1aa) !important;
+        font-size: 0.95rem;
+        line-height: 1.7;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(0,0,0,0.3);
+        padding: 1.5rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Complete Guide Accordion Section -->
-    <div class="glass-panel" style="padding: 2rem;">
-        <h3 class="font-display mb-4" style="font-size: 1.25rem;"><i class="fa-solid fa-book-open text-primary"></i> Complete User Guide & FAQs</h3>
-        
-        <div class="accordion" id="userGuideAccordion">
+<div class="hero-banner-help position-relative overflow-hidden mb-5 rounded-bottom-4 shadow-lg">
+    <img src="{{ url_for('static', filename='images/faq-banner.jpg') }}" alt="Help Center" style="width: 100%; height: 320px; object-fit: cover; filter: brightness(0.65);">
+    <!-- <div class="position-absolute top-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center px-3">
+        <span class="badge bg-primary mb-3 px-3 py-2 text-uppercase tracking-wider">User Guide</span>
+        <h1 class="font-display text-white display-4 fw-bolder mb-3">Help Center & FAQ</h1>
+        <p class="text-white opacity-75 fs-5 max-w-2xl mx-auto">Find answers instantly, explore platform features, and learn how to manage your swimming sessions effectively.</p>
+    </div> -->
+</div>
 
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#guideLogin">
-                        <i class="fa-solid fa-lock me-2"></i> 1. Login to the Application
-                    </button>
-                </h2>
-                <div id="guideLogin" class="accordion-collapse collapse show" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Enter your name and mobile number, then click <strong>Login as Guest</strong>. Existing users will be recognized automatically.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideAddSwimmer">
-                        <i class="fa-solid fa-person-swimming me-2"></i> 2. Add a Swimmer
-                    </button>
-                </h2>
-                <div id="guideAddSwimmer" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Click <strong>Add Swimmer</strong> and enter the swimmer's details. Once saved, the swimmer will be available in the booking dropdown.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideBooking">
-                        <i class="fa-regular fa-calendar me-2"></i> 3. Book a Slot
-                    </button>
-                </h2>
-                <div id="guideBooking" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Select the swimmer, package, start date, class days, location, and number of participants. Then click <strong>Confirm Booking</strong>.<br><br>
-                        <strong>Monthly Package:</strong> Select exactly 3 class days.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideEdit">
-                        <i class="fa-solid fa-pencil me-2"></i> 4. Edit Booking
-                    </button>
-                </h2>
-                <div id="guideEdit" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Open your booking card and click <strong>Edit</strong> to update dates, location, payment status, and other details.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideDelete">
-                        <i class="fa-solid fa-trash me-2"></i> 5. Delete Booking
-                    </button>
-                </h2>
-                <div id="guideDelete" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Click <strong>Delete</strong> on the booking card. Depending on permissions, the booking may be removed immediately or sent for admin approval.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideSkip">
-                        <i class="fa-solid fa-forward-step me-2"></i> 6. Skip a Session
-                    </button>
-                </h2>
-                <div id="guideSkip" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Eligible packages allow you to skip sessions and earn make-up credits.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideMakeup">
-                        <i class="fa-solid fa-rotate me-2"></i> 7. Use a Make-Up Class
-                    </button>
-                </h2>
-                <div id="guideMakeup" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Select a new date using your available make-up credit and submit the request. The coach will approve or reject it.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideCalendar">
-                        <i class="fa-regular fa-calendar-days me-2"></i> 8. View Calendar
-                    </button>
-                </h2>
-                <div id="guideCalendar" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Open the calendar to view all scheduled classes, skipped sessions, and approved make-up dates.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideNotice">
-                        <i class="fa-solid fa-bullhorn me-2"></i> 9. Notice Board
-                    </button>
-                </h2>
-                <div id="guideNotice" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Read important announcements from the coach. Admin users can update the scrolling notice from the dashboard.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideFees">
-                        <i class="fa-solid fa-indian-rupee-sign me-2"></i> 10. Fee Calculation
-                    </button>
-                </h2>
-                <div id="guideFees" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
-                    <div class="accordion-body">
-                        Fees are calculated automatically based on the selected package, number of class days, and number of participants.
-                    </div>
-                </div>
-            </div>
-
+<div class="container pb-5">
+    
+    <!-- Mermaid Flowchart -->
+    <div class="glass-panel mb-5 p-4 animate-slide-up">
+        <h3 class="font-display text-primary mb-4 fw-bold"><i class="fa-solid fa-diagram-project me-2"></i> How It Works (User Journey)</h3>
+        <p class="text-muted mb-4">Follow this simple flow to get started with your private coaching sessions.</p>
+        <div class="mermaid text-center bg-dark p-4 rounded-3 border border-secondary border-opacity-25" style="overflow-x: auto;">
+            graph LR
+            A([1. Login / Register]) --> B([2. Add Swimmer])
+            B --> C([3. Find Coach & Book])
+            C --> D([4. Complete Payment])
+            D --> E([5. Track Progress])
+            
+            classDef default fill:#09090b,stroke:#06b6d4,stroke-width:2px,color:#fff,rx:8px,ry:8px;
+            classDef active fill:#06b6d4,stroke:#fff,stroke-width:2px,color:#000,rx:8px,ry:8px;
+            
+            class A active;
         </div>
+    </div>
+
+    <!-- Highlights/Options Grid -->
+    <h3 class="font-display text-white mb-4 fw-bold"><i class="fa-solid fa-star text-warning me-2"></i> Key Platform Features</h3>
+    <div class="row g-4 mb-5">
+        <div class="col-md-3 col-sm-6">
+            <div class="glass-panel h-100 p-4 text-center hover-lift">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="fa-solid fa-calendar-check text-primary fs-3"></i>
+                </div>
+                <h5 class="text-white fw-bold">Flexible Booking</h5>
+                <p class="text-muted small mb-0">Book individual sessions or monthly packages for up to 5 family members at once.</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="glass-panel h-100 p-4 text-center hover-lift">
+                <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="fa-solid fa-forward-step text-info fs-3"></i>
+                </div>
+                <h5 class="text-white fw-bold">Skip & Make-Up</h5>
+                <p class="text-muted small mb-0">Missed a class? Skip it in the app and easily request a make-up slot later.</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="glass-panel h-100 p-4 text-center hover-lift">
+                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="fa-solid fa-credit-card text-success fs-3"></i>
+                </div>
+                <h5 class="text-white fw-bold">Easy Payments</h5>
+                <p class="text-muted small mb-0">Upload screenshots of your UPI/Bank transfers for quick coach approval.</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="glass-panel h-100 p-4 text-center hover-lift">
+                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="fa-solid fa-chart-line text-warning fs-3"></i>
+                </div>
+                <h5 class="text-white fw-bold">Track Progress</h5>
+                <p class="text-muted small mb-0">View your comprehensive calendar, upcoming sessions, and coach notices.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed FAQs -->
+    <h3 class="font-display text-white mb-4 fw-bold"><i class="fa-solid fa-circle-question text-info me-2"></i> Detailed Instructions</h3>
+    
+    <div class="accordion" id="userGuideAccordion">
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#guideLogin">
+                    <i class="fa-solid fa-lock me-3 text-primary"></i> 1. How do I Login / Register?
+                </button>
+            </h2>
+            <div id="guideLogin" class="accordion-collapse collapse show" data-bs-parent="#userGuideAccordion">
+                <div class="accordion-body">
+                    <strong>For Learners:</strong> You do not need a password! Simply enter your full name and mobile number on the homepage and click <strong>Login as Guest</strong>. The system will automatically recognize you if you've visited before, or create a new profile for you if you're new.<br><br>
+                    <strong>For Coaches:</strong> Click "Login/Register" at the top right, select the Coach tab, and use your secure Username and Password.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideAddSwimmer">
+                    <i class="fa-solid fa-person-swimming me-3 text-primary"></i> 2. How do I add a Swimmer?
+                </button>
+            </h2>
+            <div id="guideAddSwimmer" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                <div class="accordion-body">
+                    Before booking a session, you must add the person who will be swimming to your profile. 
+                    <ol class="mb-0 mt-2">
+                        <li>Go to your <strong>Dashboard</strong>.</li>
+                        <li>Click the <strong>Add Swimmer</strong> button.</li>
+                        <li>Enter the swimmer's Name, Age, Gender, and current Skill Level.</li>
+                        <li>Click Save. You can add multiple family members to a single account!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideBooking">
+                    <i class="fa-regular fa-calendar-plus me-3 text-primary"></i> 3. How do I book a Coaching Session?
+                </button>
+            </h2>
+            <div id="guideBooking" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                <div class="accordion-body">
+                    Booking is fully customizable through our Book Session wizard:
+                    <ul class="mb-0 mt-2">
+                        <li><strong>Step 1 (Package):</strong> Choose between an Individual Package or a Monthly Package.</li>
+                        <li><strong>Step 2 (Schedule):</strong> Pick your Start Date and select your preferred training days. <em>Note: Monthly packages require exactly 3 days a week.</em></li>
+                        <li><strong>Step 3 (Location & Swimmer):</strong> Enter your residential location using our Map Picker. Select the Swimmer from the dropdown.</li>
+                        <li><strong>Step 4 (Coach):</strong> The system will automatically filter and show Coaches available in your location. Select your preferred Coach and hit <strong>Proceed to Pay</strong>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guidePayments">
+                    <i class="fa-solid fa-file-invoice-dollar me-3 text-primary"></i> 4. How do Payments work?
+                </button>
+            </h2>
+            <div id="guidePayments" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                <div class="accordion-body">
+                    Once you confirm a booking, it will appear in your <strong>Bookings</strong> tab with a "Pending Payment" status.
+                    <ol class="mb-0 mt-2">
+                        <li>Click the <strong>Pay Now</strong> button on the booking card.</li>
+                        <li>You will see the Coach's UPI ID / Bank Details.</li>
+                        <li>Make the transfer using your preferred banking app (GPay, PhonePe, etc).</li>
+                        <li>Take a screenshot of the successful transaction.</li>
+                        <li>Upload the screenshot in our app. The Coach will review it and mark your booking as "Paid & Approved"!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideSkip">
+                    <i class="fa-solid fa-forward-step me-3 text-primary"></i> 5. What if I need to miss a class? (Skip & Make-Up)
+                </button>
+            </h2>
+            <div id="guideSkip" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                <div class="accordion-body">
+                    If you are on an eligible package (like Monthly) and cannot attend a scheduled session, you can <strong>Skip</strong> it.
+                    <ul class="mb-0 mt-2">
+                        <li>Go to your <strong>Dashboard</strong> or Calendar.</li>
+                        <li>Find the upcoming session you want to miss and click <strong>Skip Session</strong>.</li>
+                        <li>You will automatically be granted <strong>1 Make-Up Credit</strong>.</li>
+                        <li>Later, you can use the "Make-Up Request" button to propose a new date/time to the Coach using your credit!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#guideEdit">
+                    <i class="fa-solid fa-pen-to-square me-3 text-primary"></i> 6. Can I edit or cancel my booking?
+                </button>
+            </h2>
+            <div id="guideEdit" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                <div class="accordion-body">
+                    Yes! Go to the <strong>Bookings</strong> tab.
+                    <ul class="mb-0 mt-2">
+                        <li><strong>Edit:</strong> Click the Edit button on the card to change your selected days, location, or package type (Note: changing package type will recalculate your fee).</li>
+                        <li><strong>Delete:</strong> Click the Delete button. If your booking is already paid/approved, it may require admin authorization to completely remove. Otherwise, it is removed immediately.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Mermaid.js for Flowcharts -->
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ 
+        startOnLoad: true, 
+        theme: 'dark',
+        fontFamily: 'Inter, sans-serif'
+    });
+</script>
 <script src="{{ url_for('static', filename='common.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

@@ -251,12 +251,14 @@ def book():
         INSERT INTO students (
             student_name,
             owner_name,
-            owner_phone
-        ) VALUES (%s, %s, %s)
+            owner_phone,
+            skill_level
+        ) VALUES (%s, %s, %s, %s)
         ''', (
             student.strip(),
             session.get('user_name'),
-            session.get('phone')
+            session.get('phone'),
+            request.form.get('skill_level', 'Beginner')
         ))
 
         swimmer_conn.commit()

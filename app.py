@@ -45,9 +45,16 @@ def ensure_database_tables():
         id SERIAL PRIMARY KEY,
         student_name TEXT,
         owner_name TEXT,
-        owner_phone TEXT
+        owner_phone TEXT,
+        skill_level TEXT
     )
     """)
+    
+    try:
+        cursor.execute("ALTER TABLE students ADD COLUMN skill_level TEXT;")
+        conn.commit()
+    except Exception:
+        conn.rollback()
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS bookings (
